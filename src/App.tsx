@@ -8,10 +8,12 @@ import ManufacturingPage from './pages/Manufacturing';
 import ProductsPage from './pages/Products';
 import AboutPage from './pages/About';
 import NotFound from './pages/NotFound';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
 	return (
 		<Router>
+			<ScrollToTop />
 			<Routes>
 				<Route path="/" element={<AppLayout />}>
 					<Route path="" element={<Home />} />

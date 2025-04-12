@@ -124,7 +124,7 @@ export default function Header() {
 							Contact
 						</Link>
 						<Button
-							className="w-full mt-6 bg-pink-600 hover:bg-pink-700 rounded-full"
+							className="w-full mt-auto bg-pink-600 hover:bg-pink-700 rounded-full"
 							asChild
 						>
 							<Link
