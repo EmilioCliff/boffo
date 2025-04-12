@@ -7,6 +7,7 @@ import RetailersPage from './pages/Retailers';
 import ManufacturingPage from './pages/Manufacturing';
 import ProductsPage from './pages/Products';
 import AboutPage from './pages/About';
+import NotFound from './pages/NotFound';
 
 function App() {
 	return (
@@ -24,7 +25,7 @@ function App() {
 					<Route path="investors" element={<InvestorsPage />} />
 					<Route path="contact" element={<ContactPage />} />
 				</Route>
-				<Route path="*" element={<p>Not found</p>} />
+				<Route path="*" element={<NotFound />} />
 			</Routes>
 		</Router>
 	);
