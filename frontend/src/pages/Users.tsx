@@ -508,7 +508,7 @@ export default function Users() {
 								type="submit"
 								className="w-full gradient-primary cursor-pointer"
 							>
-								Update User
+								Create User
 							</Button>
 						</form>
 					</Form>
