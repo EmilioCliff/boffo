@@ -57,43 +57,88 @@ func (s *Server) setUpRoutes() {
 	s.router.Use(CORSmiddleware(s.config.FRONTEND_URL))
 
 	v1 := s.router.Group("/api/v1")
-	v1Auth := s.router.Group("/api/v1")
-	v1cache := s.router.Group("/api/v1")
 
-	// protected routes
-	authRoute := v1Auth.Use(authMiddleware(s.tokenMaker))
+	authGroup := v1.Group("")
+	authGroup.Use(authMiddleware(s.tokenMaker))
 
-	// cached routes
-	cacheRoute := v1cache.Use(authMiddleware(s.tokenMaker), redisCacheMiddleware(s.cache))
+	adminGroup := v1.Group("")
+	adminGroup.Use(
+		authMiddleware(s.tokenMaker),
+		adminOnlyMiddleware(),
+	)
+
+	cacheGroup := v1.Group("")
+	cacheGroup.Use(
+		authMiddleware(s.tokenMaker),
+		redisCacheMiddleware(s.cache),
+	)
+
+	adminCacheGroup := v1.Group("")
+	adminCacheGroup.Use(
+		authMiddleware(s.tokenMaker),
+		redisCacheMiddleware(s.cache),
+		adminOnlyMiddleware(),
+	)
 
 	// health check
 	v1.GET("/health-check", s.healthCheckHandler)
 
 	// users routes
-	authRoute.POST("/users", s.createUserHandler)
-	cacheRoute.GET("/users/:id", s.getUserHandler)
-	authRoute.PUT("/users/:id", s.updateUserHandler)
-	authRoute.DELETE("/users/:id", s.deleteUserHandler)
-	cacheRoute.GET("/users", s.listUsersHandler)
+	adminGroup.POST("/users", s.createUserHandler)
+	cacheGroup.GET("/users/:id", s.getUserHandler)
+	authGroup.PUT("/users/:id", s.updateUserHandler)
+	adminGroup.DELETE("/users/:id", s.deleteUserHandler)
+	adminCacheGroup.GET("/users", s.listUsersHandler)
 
 	v1.POST("/users/login", s.loginUserHandler)
 	v1.GET("/users/logout", s.logoutUserHandler)
 	v1.GET("/users/refresh-token", s.refreshTokenHandler)
-	authRoute.PUT("/users/:id/change-password", s.changePasswordHandler)
+	authGroup.PUT("/users/:id/change-password", s.changePasswordHandler)
 
 	// products routes
-	authRoute.POST("/products", s.createProductHandler)
-	cacheRoute.GET("/products/:id", s.getProductHandler)
-	authRoute.PUT("/products/:id", s.updateProductHandler)
-	authRoute.DELETE("/products/:id", s.deleteProductHandler)
-	cacheRoute.GET("/products", s.listProductsHandler)
-	cacheRoute.GET("/products/form", s.productFormHelperHandler)
+	adminGroup.POST("/products", s.createProductHandler)
+	cacheGroup.GET("/products/:id", s.getProductHandler)
+	adminGroup.PUT("/products/:id", s.updateProductHandler)
+	adminGroup.DELETE("/products/:id", s.deleteProductHandler)
+	cacheGroup.GET("/products", s.listProductsHandler)
 
-	authRoute.POST("/products/:id/add-stock", s.addProductStockHandler)
-	authRoute.POST("/products/:id/remove-stock", s.removeProductStockHandler)
-	cacheRoute.GET("/products/movements", s.listProductMovementsHandler)
-	cacheRoute.GET("/stats", s.getStatsHandler)
-	cacheRoute.GET("/dashboard", s.GetDashboardData)
+	// authRoute.POST("/products/:id/add-stock", s.addProductStockHandler)
+	// authRoute.POST("/products/:id/remove-stock", s.removeProductStockHandler)
+	// cacheRoute.GET("/products/movements", s.listProductMovementsHandler)
+	// cacheRoute.GET("/stats", s.getStatsHandler)
+	// cacheRoute.GET("/dashboard", s.GetDashboardData)
+
+	// company routes
+	adminGroup.POST("/company/stock-purchase", s.createProductBatchHandler)
+	adminCacheGroup.GET("/company/stock-purchase", s.listProductBatchesHandler)
+	adminGroup.POST("/company/stock-distributions", s.createStockDistributionHandler)
+	adminCacheGroup.GET("/company/stock-distributions", s.listStockDistributionsHandler)
+	adminCacheGroup.GET("/company/stock", s.listCompanyStockHandler)
+
+	// resellers routes
+	authGroup.POST("/resellers", s.createSaleHandler)
+	cacheGroup.GET("/resellers", s.listSalesHandler)
+	cacheGroup.GET("/resellers/stock", s.listResellerStockHandler)
+	authGroup.PUT("/resellers/stock-threshold/:id", s.updateResellerStockThrosholdHandler)
+
+	// good requests routes
+	authGroup.POST("/good-requests", s.createGoodRequestHandler)
+	cacheGroup.GET("/good-requests", s.listGoodRequestsHandler)
+	authGroup.PUT("/good-requests/:id", s.updateGoodRequestByResellerHandler)
+	authGroup.DELETE("/good-requests/:id", s.cancelGoodRequestByResellerHandler)
+	adminGroup.PUT("/admin/good-requests/:id", s.updateGoodRequestByAdminHandler)
+
+	// payments routes
+	adminGroup.POST("/payments", s.createPaymentByAdmin)
+	cacheGroup.GET("/payments", s.listPaymentsHandler)
+
+	// stock movements routes
+	cacheGroup.GET("/stock-movements", s.listStockMovementsHandler)
+
+	// helper routes
+	cacheGroup.GET("/products/form", s.productFormHelperHandler)
+	cacheGroup.GET("/resellers/:id/account", s.getResellerAccountHandler)
+	adminCacheGroup.GET("/admin/stats", s.getAdminStatsHandler)
 
 	// reports routes
 

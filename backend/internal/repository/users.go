@@ -22,6 +22,12 @@ type User struct {
 	CreatedAt   time.Time `json:"created_at"`
 }
 
+type UserShort struct {
+	ID          uint32 `json:"id"`
+	Name        string `json:"name"`
+	PhoneNumber string `json:"phone_number"`
+}
+
 type UserUpdate struct {
 	Name         *string `json:"name"`
 	Email        *string `json:"email"`
