@@ -441,111 +441,120 @@ export default function ResellerRequestsPage() {
 			</div>
 
 			{/* Goods Requests Table (Reseller) */}
-			<div className="rounded-lg border border-border bg-card overflow-hidden">
-				<table className="data-table">
-					<thead>
-						<tr>
-							<th>Request ID</th>
-							<th>Comment</th>
-							<th>Date</th>
-							<th>Status</th>
-							<th>Actions</th>
-						</tr>
-					</thead>
-					<tbody>
-						{filteredRequests.length > 0 ? (
-							filteredRequests.map((request) => (
-								<tr key={request.id}>
-									<td>
-										<span className="font-medium">
-											{`REQ-${new Date(
+			<div className="rounded-lg border border-border bg-card">
+				<div className="w-full overflow-x-auto">
+					<table className="data-table min-w-[900px]">
+						<thead>
+							<tr>
+								<th>Request ID</th>
+								<th>Comment</th>
+								<th>Date</th>
+								<th>Status</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							{filteredRequests.length > 0 ? (
+								filteredRequests.map((request) => (
+									<tr key={request.id}>
+										<td>
+											<span className="font-medium">
+												{`REQ-${new Date(
+													request.created_at,
+												).getFullYear()}-${String(
+													request.id,
+												).padStart(3, '0')}`}
+											</span>
+										</td>
+
+										<td>{request.comment || '-'}</td>
+
+										<td>
+											{format(
 												request.created_at,
-											).getFullYear()}-${String(
-												request.id,
-											).padStart(3, '0')}`}
-										</span>
-									</td>
+												'dd MMM yyyy',
+											)}
+										</td>
 
-									<td>{request.comment || '-'}</td>
+										<td>
+											{getStatusBadge(request.status)}
+										</td>
 
-									<td>
-										{format(
-											request.created_at,
-											'dd MMM yyyy',
-										)}
-									</td>
+										<td>
+											<div className="flex gap-2 items-center">
+												{/* Update */}
+												{request.status === 'PENDING' &&
+													!request.cancelled && (
+														<Button
+															size="sm"
+															variant="outline"
+															className="h-7 text-xs"
+															onClick={() => {
+																setSelectedRequest(
+																	request,
+																);
+																setActionType(
+																	'edit',
+																);
+															}}
+														>
+															Update
+														</Button>
+													)}
 
-									<td>{getStatusBadge(request.status)}</td>
+												{/* Cancel */}
+												{request.status === 'PENDING' &&
+													!request.cancelled && (
+														<Button
+															size="sm"
+															variant="outline"
+															className="h-7 text-xs text-destructive hover:text-destructive"
+															onClick={() => {
+																setSelectedRequest(
+																	request,
+																);
+																setActionType(
+																	'cancel',
+																);
+															}}
+														>
+															Cancel
+														</Button>
+													)}
 
-									<td>
-										<div className="flex gap-2 items-center">
-											{/* Update */}
-											{request.status === 'PENDING' &&
-												!request.cancelled && (
-													<Button
-														size="sm"
-														variant="outline"
-														className="h-7 text-xs"
-														onClick={() => {
-															setSelectedRequest(
-																request,
-															);
-															setActionType(
-																'edit',
-															);
-														}}
-													>
-														Update
-													</Button>
-												)}
-
-											{/* Cancel */}
-											{request.status === 'PENDING' &&
-												!request.cancelled && (
-													<Button
-														size="sm"
-														variant="outline"
-														className="h-7 text-xs text-destructive hover:text-destructive"
-														onClick={() => {
-															setSelectedRequest(
-																request,
-															);
-															setActionType(
-																'cancel',
-															);
-														}}
-													>
-														Cancel
-													</Button>
-												)}
-
-											{/* View */}
-											<Button
-												size="sm"
-												variant="ghost"
-												className="h-7 text-xs"
-												onClick={() => {
-													setSelectedRequest(request);
-													setActionType(null);
-												}}
-											>
-												View
-											</Button>
-										</div>
+												{/* View */}
+												<Button
+													size="sm"
+													variant="ghost"
+													className="h-7 text-xs"
+													onClick={() => {
+														setSelectedRequest(
+															request,
+														);
+														setActionType(null);
+													}}
+												>
+													View
+												</Button>
+											</div>
+										</td>
+									</tr>
+								))
+							) : (
+								<tr>
+									<td
+										colSpan={5}
+										className="text-center py-8"
+									>
+										<p className="text-muted-foreground">
+											No requests items found
+										</p>
 									</td>
 								</tr>
-							))
-						) : (
-							<tr>
-								<td colSpan={5} className="text-center py-8">
-									<p className="text-muted-foreground">
-										No requests items found
-									</p>
-								</td>
-							</tr>
-						)}
-					</tbody>
-				</table>
+							)}
+						</tbody>
+					</table>
+				</div>
 			</div>
 
 			{/* Cancel Request Dialog  */}

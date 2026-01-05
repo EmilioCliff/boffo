@@ -587,84 +587,89 @@ export default function DistributionPage() {
 			</div>
 
 			{/* Distribution Table */}
-			<div className="rounded-lg border border-border bg-card overflow-hidden">
-				<table className="data-table">
-					<thead>
-						<tr>
-							<th>Distribution ID</th>
-							<th>Reseller</th>
-							<th>Product</th>
-							<th className="text-right">Quantity</th>
-							<th className="text-right">Unit Price</th>
-							<th className="text-right">Total Value</th>
-							<th>Date</th>
-							<th>Status</th>
-						</tr>
-					</thead>
-					<tbody>
-						{filteredDistributions.length > 0 ? (
-							filteredDistributions.map((dist) => (
-								<tr key={dist.id}>
-									<td>
-										<span className="font-medium">
-											{`DIST-${new Date(
+			<div className="rounded-lg border border-border bg-card">
+				<div className="w-full overflow-x-auto">
+					<table className="data-table min-w-[900px]">
+						<thead>
+							<tr>
+								<th>Distribution ID</th>
+								<th>Reseller</th>
+								<th>Product</th>
+								<th className="text-right">Quantity</th>
+								<th className="text-right">Unit Price</th>
+								<th className="text-right">Total Value</th>
+								<th>Date</th>
+								<th>Status</th>
+							</tr>
+						</thead>
+						<tbody>
+							{filteredDistributions.length > 0 ? (
+								filteredDistributions.map((dist) => (
+									<tr key={dist.id}>
+										<td>
+											<span className="font-medium">
+												{`DIST-${new Date(
+													dist.date_distributed,
+												).getFullYear()}-${String(
+													dist.id,
+												).padStart(3, '0')}`}
+											</span>
+										</td>
+										<td>
+											<span>{dist.user?.name}</span>
+										</td>
+										<td>{dist.product?.name}</td>
+										<td className="text-right">
+											{dist.quantity.toLocaleString()}
+										</td>
+										<td className="text-right">
+											KES{' '}
+											{dist.unit_price.toLocaleString(
+												undefined,
+												{
+													minimumFractionDigits: 2,
+													maximumFractionDigits: 2,
+												},
+											) ?? 0}
+										</td>
+										<td className="text-right font-semibold">
+											KES{' '}
+											{dist.total_price.toLocaleString(
+												undefined,
+												{
+													minimumFractionDigits: 2,
+													maximumFractionDigits: 2,
+												},
+											)}
+										</td>
+										<td className="">
+											{format(
 												dist.date_distributed,
-											).getFullYear()}-${String(
-												dist.id,
-											).padStart(3, '0')}`}
-										</span>
-									</td>
-									<td>
-										<span>{dist.user?.name}</span>
-									</td>
-									<td>{dist.product?.name}</td>
-									<td className="text-right">
-										{dist.quantity.toLocaleString()}
-									</td>
-									<td className="text-right">
-										KES{' '}
-										{dist.unit_price.toLocaleString(
-											undefined,
-											{
-												minimumFractionDigits: 2,
-												maximumFractionDigits: 2,
-											},
-										) ?? 0}
-									</td>
-									<td className="text-right font-semibold">
-										KES{' '}
-										{dist.total_price.toLocaleString(
-											undefined,
-											{
-												minimumFractionDigits: 2,
-												maximumFractionDigits: 2,
-											},
-										)}
-									</td>
-									<td className="">
-										{format(
-											dist.date_distributed,
-											'dd MMM yyyy',
-										)}
-									</td>
-									<td>
-										<Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">
-											Completed
-										</Badge>
+												'dd MMM yyyy',
+											)}
+										</td>
+										<td>
+											<Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">
+												Completed
+											</Badge>
+										</td>
+									</tr>
+								))
+							) : (
+								<tr>
+									<td
+										colSpan={6}
+										className="text-center py-8"
+									>
+										<p className="text-muted-foreground">
+											No distribution items found
+										</p>
 									</td>
 								</tr>
-							))
-						) : (
-							<tr>
-								<td colSpan={6} className="text-center py-8">
-									<p className="text-muted-foreground">
-										No distribution items found
-									</p>
-								</td>
-							</tr>
-						)}
-					</tbody>
-				</table>
+							)}
+						</tbody>
+					</table>
+				</div>
 			</div>
 
 			{/* Pagination */}

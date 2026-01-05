@@ -26,10 +26,10 @@ export default function AdminLayout() {
 
 	return (
 		<SidebarProvider>
-			<div className="min-h-screen bg-background flex w-full">
+			<div className="min-h-screen bg-background flex min-w-0">
 				<AdminSidebar />
 
-				<div className="flex-1 flex flex-col">
+				<div className="flex-1 flex flex-col min-w-0">
 					{/* Top Header */}
 					<header className="sticky top-0 z-30 flex h-16 border-b border-border bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 						<div className="flex items-center gap-4">
@@ -42,8 +42,10 @@ export default function AdminLayout() {
 					</header>
 
 					{/* Page Content */}
-					<main className="p-6">
-						<Outlet />
+					<main className="flex-1 min-w-0 overflow-x-auto">
+						<div className="p-6 min-w-0 max-w-full">
+							<Outlet />
+						</div>
 					</main>
 				</div>
 			</div>

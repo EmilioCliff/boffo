@@ -294,113 +294,122 @@ export default function GoodsRequestsPage() {
 			</div>
 
 			{/* Goods Requested Table */}
-			<div className="rounded-lg border border-border bg-card overflow-hidden">
-				<table className="data-table">
-					<thead>
-						<tr>
-							<th>Request ID</th>
-							<th>Reseller</th>
-							<th>Comment</th>
-							<th>Date</th>
-							<th>Status</th>
-							<th>Actions</th>
-						</tr>
-					</thead>
-					<tbody>
-						{filteredRequests.length > 0 ? (
-							filteredRequests.map((request) => (
-								<tr key={request.id}>
-									<td>
-										<span className="font-medium">
-											{`REQ-${new Date(
+			<div className="rounded-lg border border-border bg-card">
+				<div className="w-full overflow-x-auto">
+					<table className="data-table min-w-[900px]">
+						<thead>
+							<tr>
+								<th>Request ID</th>
+								<th>Reseller</th>
+								<th>Comment</th>
+								<th>Date</th>
+								<th>Status</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							{filteredRequests.length > 0 ? (
+								filteredRequests.map((request) => (
+									<tr key={request.id}>
+										<td>
+											<span className="font-medium">
+												{`REQ-${new Date(
+													request.created_at,
+												).getFullYear()}-${String(
+													request.id,
+												).padStart(3, '0')}`}
+											</span>
+										</td>
+										<td>
+											<span>{request.user?.name}</span>
+										</td>
+										<td>
+											{request.comment
+												? request.comment
+												: '-'}
+										</td>
+										<td className="">
+											{format(
 												request.created_at,
-											).getFullYear()}-${String(
-												request.id,
-											).padStart(3, '0')}`}
-										</span>
-									</td>
-									<td>
-										<span>{request.user?.name}</span>
-									</td>
-									<td>
-										{request.comment
-											? request.comment
-											: '-'}
-									</td>
-									<td className="">
-										{format(
-											request.created_at,
-											'dd MMM yyyy',
-										)}
-									</td>
-									<td>{getStatusBadge(request.status)}</td>
-									<td>
-										<div className="flex gap-2 items-center">
-											{request.status === 'PENDING' &&
-												!request.cancelled && (
-													<>
-														<Button
-															size="sm"
-															variant="outline"
-															className="h-7 text-xs text-emerald-600 hover:text-emerald-700"
-															onClick={() => {
-																setSelectedRequest(
-																	request,
-																);
-																setActionType(
-																	'approve',
-																);
-															}}
-														>
-															Approve
-														</Button>
-														<Button
-															size="sm"
-															variant="outline"
-															className="h-7 text-xs text-destructive hover:text-destructive"
-															onClick={() => {
-																setSelectedRequest(
-																	request,
-																);
-																setActionType(
-																	'reject',
-																);
-															}}
-														>
-															Reject
-														</Button>
-													</>
-												)}
-											{request.cancelled && (
-												<span className="text-sm text-muted-foreground italic">
-													Cancelled
-												</span>
+												'dd MMM yyyy',
 											)}
-											<Button
-												size="sm"
-												variant="ghost"
-												className="h-7 text-xs"
-												onClick={() =>
-													setSelectedRequest(request)
-												}
-											>
-												View
-											</Button>
-										</div>
+										</td>
+										<td>
+											{getStatusBadge(request.status)}
+										</td>
+										<td>
+											<div className="flex gap-2 items-center">
+												{request.status === 'PENDING' &&
+													!request.cancelled && (
+														<>
+															<Button
+																size="sm"
+																variant="outline"
+																className="h-7 text-xs text-emerald-600 hover:text-emerald-700"
+																onClick={() => {
+																	setSelectedRequest(
+																		request,
+																	);
+																	setActionType(
+																		'approve',
+																	);
+																}}
+															>
+																Approve
+															</Button>
+															<Button
+																size="sm"
+																variant="outline"
+																className="h-7 text-xs text-destructive hover:text-destructive"
+																onClick={() => {
+																	setSelectedRequest(
+																		request,
+																	);
+																	setActionType(
+																		'reject',
+																	);
+																}}
+															>
+																Reject
+															</Button>
+														</>
+													)}
+												{request.cancelled && (
+													<span className="text-sm text-muted-foreground italic">
+														Cancelled
+													</span>
+												)}
+												<Button
+													size="sm"
+													variant="ghost"
+													className="h-7 text-xs"
+													onClick={() =>
+														setSelectedRequest(
+															request,
+														)
+													}
+												>
+													View
+												</Button>
+											</div>
+										</td>
+									</tr>
+								))
+							) : (
+								<tr>
+									<td
+										colSpan={6}
+										className="text-center py-8"
+									>
+										<p className="text-muted-foreground">
+											No request items found
+										</p>
 									</td>
 								</tr>
-							))
-						) : (
-							<tr>
-								<td colSpan={6} className="text-center py-8">
-									<p className="text-muted-foreground">
-										No request items found
-									</p>
-								</td>
-							</tr>
-						)}
-					</tbody>
-				</table>
+							)}
+						</tbody>
+					</table>
+				</div>
 			</div>
 
 			{/* Action Dialog */}

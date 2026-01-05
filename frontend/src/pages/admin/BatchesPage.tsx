@@ -578,85 +578,90 @@ export default function BatchesPage() {
 			</div>
 
 			{/* Products Table */}
-			<div className="rounded-lg border border-border bg-card overflow-hidden">
-				<table className="data-table">
-					<thead>
-						<tr>
-							<th>Batch Number</th>
-							<th>Product</th>
-							<th>Category</th>
-							<th className="text-right">Qty Received</th>
-							<th className="text-right">Qty Remaining</th>
-							<th className="text-right">Purchase Price</th>
-							<th>Date Received</th>
-							<th>Status</th>
-						</tr>
-					</thead>
-					<tbody>
-						{filteredBatches.length > 0 ? (
-							filteredBatches.map((batch) => (
-								<tr key={batch.id}>
-									<td>
-										<span className="font-medium">
-											{batch.batch_number}
-										</span>
-									</td>
-									<td>
-										<span>{batch.product?.name}</span>
-									</td>
-									<td>{batch.product_category}</td>
-									<td className="text-right">
-										{batch.quantity.toLocaleString()}
-									</td>
-									<td className="text-right">
-										<span
-											className={
-												(batch.remaining_quantity ??
-													0) < 50
-													? 'text-amber-500 font-medium'
-													: ''
-											}
-										>
-											{batch?.remaining_quantity?.toLocaleString() ??
-												0}
-										</span>
-									</td>
-									<td className="text-right">
-										KES{' '}
-										{batch.purchase_price.toLocaleString(
-											undefined,
-											{
-												minimumFractionDigits: 2,
-												maximumFractionDigits: 2,
-											},
-										)}
-									</td>
-									<td className="">
-										{format(
-											batch.date_received,
-											'dd MMM yyyy',
-										)}
-									</td>
-									<td>
-										{getStatusBadge(
-											batch.remaining_quantity ?? 0,
-											batch.product
-												?.low_stock_threshold ?? 10,
-										)}
+			<div className="rounded-lg border border-border bg-card">
+				<div className="w-full overflow-x-auto">
+					<table className="data-table min-w-[900px]">
+						<thead>
+							<tr>
+								<th>Batch Number</th>
+								<th>Product</th>
+								<th>Category</th>
+								<th className="text-right">Qty Received</th>
+								<th className="text-right">Qty Remaining</th>
+								<th className="text-right">Purchase Price</th>
+								<th>Date Received</th>
+								<th>Status</th>
+							</tr>
+						</thead>
+						<tbody>
+							{filteredBatches.length > 0 ? (
+								filteredBatches.map((batch) => (
+									<tr key={batch.id}>
+										<td>
+											<span className="font-medium">
+												{batch.batch_number}
+											</span>
+										</td>
+										<td>
+											<span>{batch.product?.name}</span>
+										</td>
+										<td>{batch.product_category}</td>
+										<td className="text-right">
+											{batch.quantity.toLocaleString()}
+										</td>
+										<td className="text-right">
+											<span
+												className={
+													(batch.remaining_quantity ??
+														0) < 50
+														? 'text-amber-500 font-medium'
+														: ''
+												}
+											>
+												{batch?.remaining_quantity?.toLocaleString() ??
+													0}
+											</span>
+										</td>
+										<td className="text-right">
+											KES{' '}
+											{batch.purchase_price.toLocaleString(
+												undefined,
+												{
+													minimumFractionDigits: 2,
+													maximumFractionDigits: 2,
+												},
+											)}
+										</td>
+										<td className="">
+											{format(
+												batch.date_received,
+												'dd MMM yyyy',
+											)}
+										</td>
+										<td>
+											{getStatusBadge(
+												batch.remaining_quantity ?? 0,
+												batch.product
+													?.low_stock_threshold ?? 10,
+											)}
+										</td>
+									</tr>
+								))
+							) : (
+								<tr>
+									<td
+										colSpan={8}
+										className="text-center py-8"
+									>
+										<p className="text-muted-foreground">
+											No batch items found
+										</p>
 									</td>
 								</tr>
-							))
-						) : (
-							<tr>
-								<td colSpan={8} className="text-center py-8">
-									<p className="text-muted-foreground">
-										No batch items found
-									</p>
-								</td>
-							</tr>
-						)}
-					</tbody>
-				</table>
+							)}
+						</tbody>
+					</table>
+				</div>
 			</div>
 
 			{/* Pagination */}

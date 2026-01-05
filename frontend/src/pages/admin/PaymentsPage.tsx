@@ -561,7 +561,7 @@ export default function PaymentsPage() {
 						onChange={(e) => setSearchQuery(e.target.value)}
 					/>
 				</div>
-				<div className="flex gap-6 items-center">
+				<div className="flex flex-col gap-4 sm:flex-row sm:gap-6 items-start sm:items-center">
 					<div className="space-y-2">
 						<Label>Filter by Reseller</Label>
 						<Select
@@ -622,84 +622,91 @@ export default function PaymentsPage() {
 			</div>
 
 			{/* Distribution Table */}
-			<div className="rounded-lg border border-border bg-card overflow-hidden">
-				<table className="data-table">
-					<thead>
-						<tr>
-							<th>Payment ID</th>
-							<th>Reseller</th>
-							<th className="text-right">Amount</th>
-							<th>Method</th>
-							<th>Reference</th>
-							<th>Date</th>
-							<th>Source</th>
-							<th>Status</th>
-						</tr>
-					</thead>
-					<tbody>
-						{filteredPayments.length > 0 ? (
-							filteredPayments.map((payment) => (
-								<tr key={payment.id}>
-									<td>
-										<span className="font-medium">
-											{`PAY-${new Date(
-												payment.created_at,
-											).getFullYear()}-${String(
-												payment.id,
-											).padStart(3, '0')}`}
-										</span>
-									</td>
-									<td>
-										<span>{payment.user?.name}</span>
-									</td>
-									<td className="text-right">
-										KES{' '}
-										{payment.amount.toLocaleString(
-											undefined,
-											{
-												minimumFractionDigits: 2,
-												maximumFractionDigits: 2,
-											},
-										)}
-									</td>
-									<td>{getMethodBadge(payment.method)}</td>
-									<td>
-										{payment.reference
-											? payment.reference
-											: '-'}
-									</td>
-									<td className="">
-										{format(
-											payment.date_paid,
-											'dd MMM yyyy',
-										)}
-									</td>
-									<td>{payment.recorded_by}</td>
-									<td>
-										{payment.date_paid ? (
-											<Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">
-												Confirmed
-											</Badge>
-										) : (
-											<Badge className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/20">
-												Pending
-											</Badge>
-										)}
-									</td>
-									<td></td>
-								</tr>
-							))
-						) : (
+			<div className="rounded-lg border border-border bg-card">
+				<div className="w-full overflow-x-auto">
+					<table className="data-table min-w-[900px]">
+						<thead>
 							<tr>
-								<td colSpan={8} className="text-center py-8">
-									<p className="text-muted-foreground">
-										No payment items found
-									</p>
-								</td>
+								<th>Payment ID</th>
+								<th>Reseller</th>
+								<th className="text-right">Amount</th>
+								<th>Method</th>
+								<th>Reference</th>
+								<th>Date</th>
+								<th>Source</th>
+								<th>Status</th>
 							</tr>
-						)}
-					</tbody>
-				</table>
+						</thead>
+						<tbody>
+							{filteredPayments.length > 0 ? (
+								filteredPayments.map((payment) => (
+									<tr key={payment.id}>
+										<td>
+											<span className="font-medium">
+												{`PAY-${new Date(
+													payment.created_at,
+												).getFullYear()}-${String(
+													payment.id,
+												).padStart(3, '0')}`}
+											</span>
+										</td>
+										<td>
+											<span>{payment.user?.name}</span>
+										</td>
+										<td className="text-right">
+											KES{' '}
+											{payment.amount.toLocaleString(
+												undefined,
+												{
+													minimumFractionDigits: 2,
+													maximumFractionDigits: 2,
+												},
+											)}
+										</td>
+										<td>
+											{getMethodBadge(payment.method)}
+										</td>
+										<td>
+											{payment.reference
+												? payment.reference
+												: '-'}
+										</td>
+										<td className="">
+											{format(
+												payment.date_paid,
+												'dd MMM yyyy',
+											)}
+										</td>
+										<td>{payment.recorded_by}</td>
+										<td>
+											{payment.date_paid ? (
+												<Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">
+													Confirmed
+												</Badge>
+											) : (
+												<Badge className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/20">
+													Pending
+												</Badge>
+											)}
+										</td>
+										<td></td>
+									</tr>
+								))
+							) : (
+								<tr>
+									<td
+										colSpan={8}
+										className="text-center py-8"
+									>
+										<p className="text-muted-foreground">
+											No payment items found
+										</p>
+									</td>
+								</tr>
+							)}
+						</tbody>
+					</table>
+				</div>
 			</div>
 
 			{/* Pagination */}
