@@ -53,6 +53,27 @@ export default function RecentActivityCard({
 		}
 	};
 
+	if (activities.length === 0) {
+		return (
+			<div className="rounded-lg border border-border bg-card p-6">
+				<h3 className="text-sm font-semibold text-foreground">
+					Recent Activity
+				</h3>
+				<div className="mt-4 flex flex-col items-center justify-center py-8 text-center">
+					<div className="rounded-full bg-muted/10 p-3">
+						<Package className="h-6 w-6 text-muted-foreground" />
+					</div>
+					<p className="mt-3 text-sm font-medium text-foreground">
+						No recent activity
+					</p>
+					<p className="mt-1 text-xs text-muted-foreground">
+						There have been no activities recorded yet
+					</p>
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<div className="rounded-lg border border-border bg-card p-6">
 			<div className="flex items-center justify-between">

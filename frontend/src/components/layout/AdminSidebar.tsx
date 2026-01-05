@@ -29,13 +29,13 @@ import { cn } from '@/lib/utils';
 
 const adminNavItems = [
 	{ title: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+	{ title: 'Resellers', href: '/admin/resellers', icon: Users },
 	{ title: 'Products', href: '/admin/products', icon: Package },
 	{ title: 'Batches', href: '/admin/batches', icon: Layers },
 	// { title: 'Company Stock', href: '/admin/stock', icon: Warehouse },
 	{ title: 'Distribution', href: '/admin/distribution', icon: Truck },
 	{ title: 'Goods Requests', href: '/admin/requests', icon: FileText },
 	{ title: 'Payments', href: '/admin/payments', icon: CreditCard },
-	{ title: 'Resellers', href: '/admin/resellers', icon: Users },
 	{ title: 'Staffs', href: '/admin/staffs', icon: UserCog },
 	{
 		title: 'Stock Movements',

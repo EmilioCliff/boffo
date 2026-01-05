@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Package } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import type { DashboardTopReseller } from '@/lib/types';
 
@@ -15,6 +15,27 @@ export default function TopResellersCard({ resellers }: TopResellersCardProps) {
 			minimumFractionDigits: 0,
 		}).format(value);
 	};
+
+	if (resellers.length === 0) {
+		return (
+			<div className="rounded-lg border border-border bg-card p-6">
+				<h3 className="text-sm font-semibold text-foreground">
+					Top Resellers
+				</h3>
+				<div className="mt-4 flex flex-col items-center justify-center py-8 text-center">
+					<div className="rounded-full bg-muted p-3">
+						<Package className="h-6 w-6 text-muted-foreground" />
+					</div>
+					<p className="mt-3 text-sm font-medium text-foreground">
+						No resellers found
+					</p>
+					<p className="mt-1 text-xs text-muted-foreground">
+						There are no resellers to display at this time
+					</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="rounded-lg border border-border bg-card p-6">
