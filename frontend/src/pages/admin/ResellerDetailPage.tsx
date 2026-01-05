@@ -404,13 +404,15 @@ export default function ResellerDetailPage() {
 							<h1 className="text-2xl font-bold text-foreground">
 								{profile?.user.name}
 							</h1>
-							<div className="flex items-center gap-2 text-sm text-muted-foreground">
-								<BadgeCheck className="h-4 w-4 text-emerald-500" />
-								<span>RESELLER</span>
-								<Separator
-									orientation="vertical"
-									className="h-4"
-								/>
+							<div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-sm text-muted-foreground">
+								<div className="flex items-center gap-2">
+									<BadgeCheck className="h-4 w-4 text-emerald-500" />
+									<span>RESELLER</span>
+									<Separator
+										orientation="vertical"
+										className="h-4 hidden sm:block"
+									/>
+								</div>
 								<span>
 									Joined{' '}
 									{format(
@@ -775,84 +777,89 @@ export default function ResellerDetailPage() {
 							</div>
 
 							{/* Stock Table */}
-							<div className="rounded-lg border border-border bg-card overflow-hidden">
-								<table className="data-table">
-									<thead>
-										<tr>
-											<th>Product</th>
-											<th>Category</th>
-											<th>Unit</th>
-											<th className="text-right">
-												Current Stock
-											</th>
-											<th className="text-right">
-												Threshold
-											</th>
-											<th>Status</th>
-										</tr>
-									</thead>
-									<tbody>
-										{stockQuery.data?.data &&
-										stockQuery.data?.data.length > 0 ? (
-											stockQuery.data?.data.map(
-												(product) => (
-													<tr
-														key={product.product_id}
-													>
-														<td>
-															<span className="font-medium">
+							<div className="rounded-lg border border-border bg-card">
+								<div className="w-full overflow-x-auto">
+									<table className="data-table min-w-[900px]">
+										<thead>
+											<tr>
+												<th>Product</th>
+												<th>Category</th>
+												<th>Unit</th>
+												<th className="text-right">
+													Current Stock
+												</th>
+												<th className="text-right">
+													Threshold
+												</th>
+												<th>Status</th>
+											</tr>
+										</thead>
+										<tbody>
+											{stockQuery.data?.data &&
+											stockQuery.data?.data.length > 0 ? (
+												stockQuery.data?.data.map(
+													(product) => (
+														<tr
+															key={
+																product.product_id
+															}
+														>
+															<td>
+																<span className="font-medium">
+																	{
+																		product
+																			.product
+																			?.name
+																	}
+																</span>
+															</td>
+															<td className="text-muted-foreground">
+																{
+																	product.product_category
+																}
+															</td>
+															<td className="text-muted-foreground">
 																{
 																	product
 																		.product
-																		?.name
+																		?.unit
 																}
-															</span>
-														</td>
-														<td className="text-muted-foreground">
-															{
-																product.product_category
-															}
-														</td>
-														<td className="text-muted-foreground">
-															{
-																product.product
-																	?.unit
-															}
-														</td>
-														<td className="text-right">
-															<span className="font-semibold">
-																{product.quantity.toLocaleString()}
-															</span>
-														</td>
-														<td className="text-right ">
-															{
-																product.low_stock_threshold
-															}
-														</td>
-														<td>
-															{getStatusBadge(
-																product.quantity,
-																product.low_stock_threshold ??
-																	10,
-															)}
-														</td>
-													</tr>
-												),
-											)
-										) : (
-											<tr>
-												<td
-													colSpan={6}
-													className="text-center py-8"
-												>
-													<p className="text-muted-foreground">
-														No stock items found
-													</p>
-												</td>
-											</tr>
-										)}
-									</tbody>
-								</table>
+															</td>
+															<td className="text-right">
+																<span className="font-semibold">
+																	{product.quantity.toLocaleString()}
+																</span>
+															</td>
+															<td className="text-right ">
+																{
+																	product.low_stock_threshold
+																}
+															</td>
+															<td>
+																{getStatusBadge(
+																	product.quantity,
+																	product.low_stock_threshold ??
+																		10,
+																)}
+															</td>
+														</tr>
+													),
+												)
+											) : (
+												<tr>
+													<td
+														colSpan={6}
+														className="text-center py-8"
+													>
+														<p className="text-muted-foreground">
+															No stock items found
+														</p>
+													</td>
+												</tr>
+											)}
+										</tbody>
+									</table>
+								</div>
 							</div>
 
 							{/* Pagination */}
@@ -930,108 +937,111 @@ export default function ResellerDetailPage() {
 							</div>
 
 							{/* Sales Table */}
-							<div className="rounded-lg border border-border bg-card overflow-hidden">
-								<table className="data-table">
-									<thead>
-										<tr>
-											<th>Sale ID</th>
-											<th>Product</th>
-											<th>Unit</th>
-											<th className="text-right">
-												Quantity
-											</th>
-											<th className="text-right">
-												Selling Price
-											</th>
-											<th className="text-right">
-												Total
-											</th>
-											<th>Date Sold</th>
-										</tr>
-									</thead>
-									<tbody>
-										{salesQuery.data?.data &&
-										salesQuery.data.data.length > 0 ? (
-											salesQuery.data?.data.map(
-												(product) => (
-													<tr key={product.id}>
-														<td>
-															<span className="font-medium">
-																{`SAL-${new Date(
-																	product.created_at,
-																).getFullYear()}-${String(
-																	product.id,
-																).padStart(
-																	3,
-																	'0',
-																)}`}
-															</span>
-														</td>
-														<td>
-															<span className="font-medium">
+							<div className="rounded-lg border border-border bg-card">
+								<div className="w-full overflow-x-auto">
+									<table className="data-table min-w-[900px]">
+										<thead>
+											<tr>
+												<th>Sale ID</th>
+												<th>Product</th>
+												<th>Unit</th>
+												<th className="text-right">
+													Quantity
+												</th>
+												<th className="text-right">
+													Selling Price
+												</th>
+												<th className="text-right">
+													Total
+												</th>
+												<th>Date Sold</th>
+											</tr>
+										</thead>
+										<tbody>
+											{salesQuery.data?.data &&
+											salesQuery.data.data.length > 0 ? (
+												salesQuery.data?.data.map(
+													(product) => (
+														<tr key={product.id}>
+															<td>
+																<span className="font-medium">
+																	{`SAL-${new Date(
+																		product.created_at,
+																	).getFullYear()}-${String(
+																		product.id,
+																	).padStart(
+																		3,
+																		'0',
+																	)}`}
+																</span>
+															</td>
+															<td>
+																<span className="font-medium">
+																	{
+																		product
+																			.product
+																			?.name
+																	}
+																</span>
+															</td>
+															<td className="text-muted-foreground">
 																{
 																	product
 																		.product
-																		?.name
+																		?.unit
 																}
-															</span>
-														</td>
-														<td className="text-muted-foreground">
-															{
-																product.product
-																	?.unit
-															}
-														</td>
-														<td className="text-right">
-															{product.quantity.toLocaleString()}
-														</td>
-														<td className="text-right">
-															<span className="font-semibold">
-																KES{' '}
-																{product.selling_price.toLocaleString(
-																	undefined,
-																	{
-																		minimumFractionDigits: 2,
-																		maximumFractionDigits: 2,
-																	},
+															</td>
+															<td className="text-right">
+																{product.quantity.toLocaleString()}
+															</td>
+															<td className="text-right">
+																<span className="font-semibold">
+																	KES{' '}
+																	{product.selling_price.toLocaleString(
+																		undefined,
+																		{
+																			minimumFractionDigits: 2,
+																			maximumFractionDigits: 2,
+																		},
+																	)}
+																</span>
+															</td>
+															<td className="text-right">
+																<span className="font-semibold">
+																	KES{' '}
+																	{product.total_amount.toLocaleString(
+																		undefined,
+																		{
+																			minimumFractionDigits: 2,
+																			maximumFractionDigits: 2,
+																		},
+																	)}
+																</span>
+															</td>
+															<td>
+																{format(
+																	product.date_sold,
+																	'dd MMM yyyy',
 																)}
-															</span>
-														</td>
-														<td className="text-right">
-															<span className="font-semibold">
-																KES{' '}
-																{product.total_amount.toLocaleString(
-																	undefined,
-																	{
-																		minimumFractionDigits: 2,
-																		maximumFractionDigits: 2,
-																	},
-																)}
-															</span>
-														</td>
-														<td>
-															{format(
-																product.date_sold,
-																'dd MMM yyyy',
-															)}
-														</td>
-													</tr>
-												),
-											)
-										) : (
-											<tr>
-												<td
-													colSpan={7}
-													className="text-center py-8"
-												>
-													<p className="text-muted-foreground">
-														No sales items found
-													</p>
-												</td>
-											</tr>
-										)}
-									</tbody>
-								</table>
+															</td>
+														</tr>
+													),
+												)
+											) : (
+												<tr>
+													<td
+														colSpan={7}
+														className="text-center py-8"
+													>
+														<p className="text-muted-foreground">
+															No sales items found
+														</p>
+													</td>
+												</tr>
+											)}
+										</tbody>
+									</table>
+								</div>
 							</div>
 
 							{/* Pagination */}
@@ -1139,100 +1149,104 @@ export default function ResellerDetailPage() {
 							</div>
 
 							{/* Payments Table */}
-							<div className="rounded-lg border border-border bg-card overflow-hidden">
-								<table className="data-table">
-									<thead>
-										<tr>
-											<th>Payment ID</th>
-											<th className="text-right">
-												Amount
-											</th>
-											<th>Method</th>
-											<th>Reference</th>
-											<th>Date</th>
-											<th>Source</th>
-											<th>Status</th>
-										</tr>
-									</thead>
-									<tbody>
-										{paymentsQuery.data?.data &&
-										paymentsQuery.data.data.length > 0 ? (
-											paymentsQuery.data?.data.map(
-												(payment) => (
-													<tr key={payment.id}>
-														<td>
-															<span className="font-medium">
-																{`PAY-${new Date(
-																	payment.created_at,
-																).getFullYear()}-${String(
-																	payment.id,
-																).padStart(
-																	3,
-																	'0',
-																)}`}
-															</span>
-														</td>
-
-														<td className="text-right">
-															KES{' '}
-															{payment.amount.toLocaleString(
-																undefined,
-																{
-																	minimumFractionDigits: 2,
-																	maximumFractionDigits: 2,
-																},
-															)}
-														</td>
-														<td>
-															{getMethodBadge(
-																payment.method,
-															)}
-														</td>
-														<td>
-															{payment.reference
-																? payment.reference
-																: '-'}
-														</td>
-														<td className="">
-															{format(
-																payment.date_paid,
-																'dd MMM yyyy',
-															)}
-														</td>
-														<td>
-															{
-																payment.recorded_by
-															}
-														</td>
-														<td>
-															{payment.date_paid ? (
-																<Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">
-																	Confirmed
-																</Badge>
-															) : (
-																<Badge className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/20">
-																	Pending
-																</Badge>
-															)}
-														</td>
-														<td></td>
-													</tr>
-												),
-											)
-										) : (
+							<div className="rounded-lg border border-border bg-card">
+								<div className="w-full overflow-x-auto">
+									<table className="data-table min-w-[900px]">
+										<thead>
 											<tr>
-												<td
-													colSpan={7}
-													className="text-center py-8"
-												>
-													<p className="text-muted-foreground">
-														No payment items found
-													</p>
-												</td>
+												<th>Payment ID</th>
+												<th className="text-right">
+													Amount
+												</th>
+												<th>Method</th>
+												<th>Reference</th>
+												<th>Date</th>
+												<th>Source</th>
+												<th>Status</th>
 											</tr>
-										)}
-									</tbody>
-								</table>
+										</thead>
+										<tbody>
+											{paymentsQuery.data?.data &&
+											paymentsQuery.data.data.length >
+												0 ? (
+												paymentsQuery.data?.data.map(
+													(payment) => (
+														<tr key={payment.id}>
+															<td>
+																<span className="font-medium">
+																	{`PAY-${new Date(
+																		payment.created_at,
+																	).getFullYear()}-${String(
+																		payment.id,
+																	).padStart(
+																		3,
+																		'0',
+																	)}`}
+																</span>
+															</td>
+
+															<td className="text-right">
+																KES{' '}
+																{payment.amount.toLocaleString(
+																	undefined,
+																	{
+																		minimumFractionDigits: 2,
+																		maximumFractionDigits: 2,
+																	},
+																)}
+															</td>
+															<td>
+																{getMethodBadge(
+																	payment.method,
+																)}
+															</td>
+															<td>
+																{payment.reference
+																	? payment.reference
+																	: '-'}
+															</td>
+															<td className="">
+																{format(
+																	payment.date_paid,
+																	'dd MMM yyyy',
+																)}
+															</td>
+															<td>
+																{
+																	payment.recorded_by
+																}
+															</td>
+															<td>
+																{payment.date_paid ? (
+																	<Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">
+																		Confirmed
+																	</Badge>
+																) : (
+																	<Badge className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/20">
+																		Pending
+																	</Badge>
+																)}
+															</td>
+															<td></td>
+														</tr>
+													),
+												)
+											) : (
+												<tr>
+													<td
+														colSpan={7}
+														className="text-center py-8"
+													>
+														<p className="text-muted-foreground">
+															No payment items
+															found
+														</p>
+													</td>
+												</tr>
+											)}
+										</tbody>
+									</table>
+								</div>
 							</div>
 
 							{/* Pagination */}
@@ -1313,127 +1327,130 @@ export default function ResellerDetailPage() {
 							</div>
 
 							{/* Distribution Table */}
-							<div className="rounded-lg border border-border bg-card overflow-hidden">
-								<table className="data-table">
-									<thead>
-										<tr>
-											<th>Request ID</th>
-											<th>Comment</th>
-											<th>Date</th>
-											<th>Status</th>
-											<th>Actions</th>
-										</tr>
-									</thead>
-									<tbody>
-										{goodsRequestedQuery.data?.data &&
-										goodsRequestedQuery.data.data.length >
-											0 ? (
-											goodsRequestedQuery.data?.data.map(
-												(request) => (
-													<tr key={request.id}>
-														<td>
-															<span className="font-medium">
-																{`REQ-${new Date(
-																	request.created_at,
-																).getFullYear()}-${String(
-																	request.id,
-																).padStart(
-																	3,
-																	'0',
-																)}`}
-															</span>
-														</td>
-
-														<td>
-															{request.comment
-																? request.comment
-																: '-'}
-														</td>
-														<td className="">
-															{format(
-																request.created_at,
-																'dd MMM yyyy',
-															)}
-														</td>
-														<td>
-															{getStatusBadgeGoods(
-																request.status,
-															)}
-														</td>
-														<td>
-															<div className="flex gap-2 items-center">
-																{request.status ===
-																	'PENDING' &&
-																	!request.cancelled && (
-																		<>
-																			<Button
-																				size="sm"
-																				variant="outline"
-																				className="h-7 text-xs text-emerald-600 hover:text-emerald-700"
-																				onClick={() => {
-																					setSelectedRequest(
-																						request,
-																					);
-																					setActionType(
-																						'approve',
-																					);
-																				}}
-																			>
-																				Approve
-																			</Button>
-																			<Button
-																				size="sm"
-																				variant="outline"
-																				className="h-7 text-xs text-destructive hover:text-destructive"
-																				onClick={() => {
-																					setSelectedRequest(
-																						request,
-																					);
-																					setActionType(
-																						'reject',
-																					);
-																				}}
-																			>
-																				Reject
-																			</Button>
-																		</>
-																	)}
-																{request.cancelled && (
-																	<span className="text-sm text-muted-foreground italic">
-																		Cancelled
-																	</span>
-																)}
-																<Button
-																	size="sm"
-																	variant="ghost"
-																	className="h-7 text-xs"
-																	onClick={() =>
-																		setSelectedRequest(
-																			request,
-																		)
-																	}
-																>
-																	View
-																</Button>
-															</div>
-														</td>
-													</tr>
-												),
-											)
-										) : (
+							<div className="rounded-lg border border-border bg-card">
+								<div className="w-full overflow-x-auto">
+									<table className="data-table min-w-[900px]">
+										<thead>
 											<tr>
-												<td
-													colSpan={5}
-													className="text-center py-8"
-												>
-													<p className="text-muted-foreground">
-														No request items found
-													</p>
-												</td>
+												<th>Request ID</th>
+												<th>Comment</th>
+												<th>Date</th>
+												<th>Status</th>
+												<th>Actions</th>
 											</tr>
-										)}
-									</tbody>
-								</table>
+										</thead>
+										<tbody>
+											{goodsRequestedQuery.data?.data &&
+											goodsRequestedQuery.data.data
+												.length > 0 ? (
+												goodsRequestedQuery.data?.data.map(
+													(request) => (
+														<tr key={request.id}>
+															<td>
+																<span className="font-medium">
+																	{`REQ-${new Date(
+																		request.created_at,
+																	).getFullYear()}-${String(
+																		request.id,
+																	).padStart(
+																		3,
+																		'0',
+																	)}`}
+																</span>
+															</td>
+
+															<td>
+																{request.comment
+																	? request.comment
+																	: '-'}
+															</td>
+															<td className="">
+																{format(
+																	request.created_at,
+																	'dd MMM yyyy',
+																)}
+															</td>
+															<td>
+																{getStatusBadgeGoods(
+																	request.status,
+																)}
+															</td>
+															<td>
+																<div className="flex gap-2 items-center">
+																	{request.status ===
+																		'PENDING' &&
+																		!request.cancelled && (
+																			<>
+																				<Button
+																					size="sm"
+																					variant="outline"
+																					className="h-7 text-xs text-emerald-600 hover:text-emerald-700"
+																					onClick={() => {
+																						setSelectedRequest(
+																							request,
+																						);
+																						setActionType(
+																							'approve',
+																						);
+																					}}
+																				>
+																					Approve
+																				</Button>
+																				<Button
+																					size="sm"
+																					variant="outline"
+																					className="h-7 text-xs text-destructive hover:text-destructive"
+																					onClick={() => {
+																						setSelectedRequest(
+																							request,
+																						);
+																						setActionType(
+																							'reject',
+																						);
+																					}}
+																				>
+																					Reject
+																				</Button>
+																			</>
+																		)}
+																	{request.cancelled && (
+																		<span className="text-sm text-muted-foreground italic">
+																			Cancelled
+																		</span>
+																	)}
+																	<Button
+																		size="sm"
+																		variant="ghost"
+																		className="h-7 text-xs"
+																		onClick={() =>
+																			setSelectedRequest(
+																				request,
+																			)
+																		}
+																	>
+																		View
+																	</Button>
+																</div>
+															</td>
+														</tr>
+													),
+												)
+											) : (
+												<tr>
+													<td
+														colSpan={5}
+														className="text-center py-8"
+													>
+														<p className="text-muted-foreground">
+															No request items
+															found
+														</p>
+													</td>
+												</tr>
+											)}
+										</tbody>
+									</table>
+								</div>
 							</div>
 
 							{/* Pagination */}

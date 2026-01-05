@@ -530,116 +530,128 @@ export default function ProductsPage() {
 			</div>
 
 			{/* Products Table */}
-			<div className="rounded-lg border border-border bg-card overflow-hidden">
-				<table className="data-table">
-					<thead>
-						<tr>
-							<th>Product</th>
-							<th>Category</th>
-							<th>Unit</th>
-							<th>Current Stock</th>
-							<th>Threshold</th>
-							<th>Status</th>
-							<th className="w-12"></th>
-						</tr>
-					</thead>
-					<tbody>
-						{filteredProducts.length > 0 ? (
-							filteredProducts.map((product) => (
-								<tr key={product.product_id}>
-									<td>
-										<span className="font-medium">
-											{product.product?.name}
-										</span>
-									</td>
-									<td className="text-muted-foreground">
-										{product.product_category}
-									</td>
-									<td className="text-muted-foreground">
-										{product.product?.unit}
-									</td>
-									<td>
-										<span className="font-semibold">
-											{product.quantity.toLocaleString()}
-										</span>
-									</td>
-									<td className="text-muted-foreground">
-										{product.product?.low_stock_threshold}
-									</td>
-									<td>
-										{getStatusBadge(
-											product.quantity,
-											product.product
-												?.low_stock_threshold ?? 10,
-										)}
-									</td>
-									<td>
-										<DropdownMenu>
-											<DropdownMenuTrigger asChild>
-												<Button
-													variant="ghost"
-													size="icon"
-												>
-													<MoreHorizontal className="h-4 w-4" />
-												</Button>
-											</DropdownMenuTrigger>
-											<DropdownMenuContent align="end">
-												<DropdownMenuItem
-													onClick={() => {
-														setEditingProduct(
-															product,
-														);
-														setIsEditMode(false);
-														setIsViewDialogOpen(
-															true,
-														);
-													}}
-												>
-													<Eye className="mr-2 h-4 w-4" />
-													View Details
-												</DropdownMenuItem>
-												<DropdownMenuItem
-													onClick={() => {
-														setEditingProduct(
-															product,
-														);
-														setIsEditMode(true);
-														setIsViewDialogOpen(
-															true,
-														);
-													}}
-												>
-													<Edit className="mr-2 h-4 w-4" />
-													Edit
-												</DropdownMenuItem>
-												<DropdownMenuItem
-													onClick={() => {
-														setEditingProduct(
-															product,
-														);
-														setDeleteConfirm(true);
-													}}
-													className=" text-destructive focus:text-destructive hover:text-destructive focus:bg-destructive/10 hover:bg-destructive/10 "
-												>
-													<Trash2 className="mr-2 h-4 w-4 text-current" />
-													Delete
-												</DropdownMenuItem>
-											</DropdownMenuContent>
-										</DropdownMenu>
+			<div className="rounded-lg border border-border bg-card">
+				<div className="w-full overflow-x-auto">
+					<table className="data-table min-w-[900px]">
+						<thead>
+							<tr>
+								<th>Product</th>
+								<th>Category</th>
+								<th>Unit</th>
+								<th>Current Stock</th>
+								<th>Threshold</th>
+								<th>Status</th>
+								<th className="w-12"></th>
+							</tr>
+						</thead>
+						<tbody>
+							{filteredProducts.length > 0 ? (
+								filteredProducts.map((product) => (
+									<tr key={product.product_id}>
+										<td>
+											<span className="font-medium">
+												{product.product?.name}
+											</span>
+										</td>
+										<td className="text-muted-foreground">
+											{product.product_category}
+										</td>
+										<td className="text-muted-foreground">
+											{product.product?.unit}
+										</td>
+										<td>
+											<span className="font-semibold">
+												{product.quantity.toLocaleString()}
+											</span>
+										</td>
+										<td className="text-muted-foreground">
+											{
+												product.product
+													?.low_stock_threshold
+											}
+										</td>
+										<td>
+											{getStatusBadge(
+												product.quantity,
+												product.product
+													?.low_stock_threshold ?? 10,
+											)}
+										</td>
+										<td>
+											<DropdownMenu>
+												<DropdownMenuTrigger asChild>
+													<Button
+														variant="ghost"
+														size="icon"
+													>
+														<MoreHorizontal className="h-4 w-4" />
+													</Button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align="end">
+													<DropdownMenuItem
+														onClick={() => {
+															setEditingProduct(
+																product,
+															);
+															setIsEditMode(
+																false,
+															);
+															setIsViewDialogOpen(
+																true,
+															);
+														}}
+													>
+														<Eye className="mr-2 h-4 w-4" />
+														View Details
+													</DropdownMenuItem>
+													<DropdownMenuItem
+														onClick={() => {
+															setEditingProduct(
+																product,
+															);
+															setIsEditMode(true);
+															setIsViewDialogOpen(
+																true,
+															);
+														}}
+													>
+														<Edit className="mr-2 h-4 w-4" />
+														Edit
+													</DropdownMenuItem>
+													<DropdownMenuItem
+														onClick={() => {
+															setEditingProduct(
+																product,
+															);
+															setDeleteConfirm(
+																true,
+															);
+														}}
+														className=" text-destructive focus:text-destructive hover:text-destructive focus:bg-destructive/10 hover:bg-destructive/10 "
+													>
+														<Trash2 className="mr-2 h-4 w-4 text-current" />
+														Delete
+													</DropdownMenuItem>
+												</DropdownMenuContent>
+											</DropdownMenu>
+										</td>
+									</tr>
+								))
+							) : (
+								<tr>
+									<td
+										colSpan={7}
+										className="text-center py-8"
+									>
+										<p className="text-muted-foreground">
+											No product items found
+										</p>
 									</td>
 								</tr>
-							))
-						) : (
-							<tr>
-								<td colSpan={7} className="text-center py-8">
-									<p className="text-muted-foreground">
-										No product items found
-									</p>
-								</td>
-							</tr>
-						)}
-					</tbody>
-				</table>
+							)}
+						</tbody>
+					</table>
+				</div>
 			</div>
 
 			{/* View/Edit Product Dialog */}

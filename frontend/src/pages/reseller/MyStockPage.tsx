@@ -172,60 +172,66 @@ export default function MyStockPage() {
 			</div>
 
 			{/* Stock Table */}
-			<div className="rounded-lg border border-border bg-card overflow-hidden">
-				<table className="data-table">
-					<thead>
-						<tr>
-							<th>Product</th>
-							<th>Category</th>
-							<th>Unit</th>
-							<th className="text-right">Current Stock</th>
-							<th className="text-right">Threshold</th>
-							<th>Status</th>
-						</tr>
-					</thead>
-					<tbody>
-						{stocks.length > 0 ? (
-							stocks.map((product) => (
-								<tr key={product.product_id}>
-									<td>
-										<span className="font-medium">
-											{product.product?.name}
-										</span>
-									</td>
-									<td className="text-muted-foreground">
-										{product.product_category}
-									</td>
-									<td className="text-muted-foreground">
-										{product.product?.unit}
-									</td>
-									<td className="text-right">
-										<span className="font-semibold">
-											{product.quantity.toLocaleString()}
-										</span>
-									</td>
-									<td className="text-right ">
-										{product.low_stock_threshold}
-									</td>
-									<td>
-										{getStatusBadge(
-											product.quantity,
-											product.low_stock_threshold ?? 10,
-										)}
+			<div className="rounded-lg border border-border bg-card">
+				<div className="w-full overflow-x-auto">
+					<table className="data-table min-w-[900px]">
+						<thead>
+							<tr>
+								<th>Product</th>
+								<th>Category</th>
+								<th>Unit</th>
+								<th className="text-right">Current Stock</th>
+								<th className="text-right">Threshold</th>
+								<th>Status</th>
+							</tr>
+						</thead>
+						<tbody>
+							{stocks.length > 0 ? (
+								stocks.map((product) => (
+									<tr key={product.product_id}>
+										<td>
+											<span className="font-medium">
+												{product.product?.name}
+											</span>
+										</td>
+										<td className="text-muted-foreground">
+											{product.product_category}
+										</td>
+										<td className="text-muted-foreground">
+											{product.product?.unit}
+										</td>
+										<td className="text-right">
+											<span className="font-semibold">
+												{product.quantity.toLocaleString()}
+											</span>
+										</td>
+										<td className="text-right ">
+											{product.low_stock_threshold}
+										</td>
+										<td>
+											{getStatusBadge(
+												product.quantity,
+												product.low_stock_threshold ??
+													10,
+											)}
+										</td>
+									</tr>
+								))
+							) : (
+								<tr>
+									<td
+										colSpan={6}
+										className="text-center py-8"
+									>
+										<p className="text-muted-foreground">
+											No stock items found
+										</p>
 									</td>
 								</tr>
-							))
-						) : (
-							<tr>
-								<td colSpan={6} className="text-center py-8">
-									<p className="text-muted-foreground">
-										No stock items found
-									</p>
-								</td>
-							</tr>
-						)}
-					</tbody>
-				</table>
+							)}
+						</tbody>
+					</table>
+				</div>
 			</div>
 
 			{/* Pagination */}

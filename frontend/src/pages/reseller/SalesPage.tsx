@@ -439,86 +439,91 @@ export default function SalesPage() {
 			</div>
 
 			{/* Sales Table */}
-			<div className="rounded-lg border border-border bg-card overflow-hidden">
-				<table className="data-table">
-					<thead>
-						<tr>
-							<th>Sale ID</th>
-							<th>Product</th>
-							<th>Unit</th>
-							<th className="text-right">Quantity</th>
-							<th className="text-right">Selling Price</th>
-							<th className="text-right">Total</th>
-							<th>Date Sold</th>
-						</tr>
-					</thead>
-					<tbody>
-						{sales.length > 0 ? (
-							sales.map((product) => (
-								<tr key={product.id}>
-									<td>
-										<span className="font-medium">
-											{`SAL-${new Date(
-												product.created_at,
-											).getFullYear()}-${String(
-												product.id,
-											).padStart(3, '0')}`}
-										</span>
-									</td>
-									<td>
-										<span className="font-medium">
-											{product.product?.name}
-										</span>
-									</td>
-									<td className="text-muted-foreground">
-										{product.product?.unit}
-									</td>
-									<td className="text-right">
-										{product.quantity.toLocaleString()}
-									</td>
-									<td className="text-right">
-										<span className="font-semibold">
-											KES{' '}
-											{product.selling_price.toLocaleString(
-												undefined,
-												{
-													minimumFractionDigits: 2,
-													maximumFractionDigits: 2,
-												},
+			<div className="rounded-lg border border-border bg-card">
+				<div className="w-full overflow-x-auto">
+					<table className="data-table min-w-[900px]">
+						<thead>
+							<tr>
+								<th>Sale ID</th>
+								<th>Product</th>
+								<th>Unit</th>
+								<th className="text-right">Quantity</th>
+								<th className="text-right">Selling Price</th>
+								<th className="text-right">Total</th>
+								<th>Date Sold</th>
+							</tr>
+						</thead>
+						<tbody>
+							{sales.length > 0 ? (
+								sales.map((product) => (
+									<tr key={product.id}>
+										<td>
+											<span className="font-medium">
+												{`SAL-${new Date(
+													product.created_at,
+												).getFullYear()}-${String(
+													product.id,
+												).padStart(3, '0')}`}
+											</span>
+										</td>
+										<td>
+											<span className="font-medium">
+												{product.product?.name}
+											</span>
+										</td>
+										<td className="text-muted-foreground">
+											{product.product?.unit}
+										</td>
+										<td className="text-right">
+											{product.quantity.toLocaleString()}
+										</td>
+										<td className="text-right">
+											<span className="font-semibold">
+												KES{' '}
+												{product.selling_price.toLocaleString(
+													undefined,
+													{
+														minimumFractionDigits: 2,
+														maximumFractionDigits: 2,
+													},
+												)}
+											</span>
+										</td>
+										<td className="text-right">
+											<span className="font-semibold">
+												KES{' '}
+												{product.total_amount.toLocaleString(
+													undefined,
+													{
+														minimumFractionDigits: 2,
+														maximumFractionDigits: 2,
+													},
+												)}
+											</span>
+										</td>
+										<td>
+											{format(
+												product.date_sold,
+												'dd MMM yyyy',
 											)}
-										</span>
-									</td>
-									<td className="text-right">
-										<span className="font-semibold">
-											KES{' '}
-											{product.total_amount.toLocaleString(
-												undefined,
-												{
-													minimumFractionDigits: 2,
-													maximumFractionDigits: 2,
-												},
-											)}
-										</span>
-									</td>
-									<td>
-										{format(
-											product.date_sold,
-											'dd MMM yyyy',
-										)}
+										</td>
+									</tr>
+								))
+							) : (
+								<tr>
+									<td
+										colSpan={7}
+										className="text-center py-8"
+									>
+										<p className="text-muted-foreground">
+											No sales items found
+										</p>
 									</td>
 								</tr>
-							))
-						) : (
-							<tr>
-								<td colSpan={7} className="text-center py-8">
-									<p className="text-muted-foreground">
-										No sales items found
-									</p>
-								</td>
-							</tr>
-						)}
-					</tbody>
-				</table>
+							)}
+						</tbody>
+					</table>
+				</div>
 			</div>
 
 			{/* Pagination */}

@@ -34,7 +34,7 @@ export default function PaginationNew({
 }: PaginationProps) {
 	return (
 		<div className="flex items-center justify-between mt-4">
-			<p className="text-sm text-muted-foreground">
+			<p className="hidden sm:flex text-sm text-muted-foreground">
 				Page {page} of {totalPages}
 			</p>
 			<div className="flex gap-2">

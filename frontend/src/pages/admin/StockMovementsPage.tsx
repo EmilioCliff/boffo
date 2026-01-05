@@ -213,7 +213,7 @@ export default function StockMovementsPage() {
 						onChange={(e) => setSearchQuery(e.target.value)}
 					/>
 				</div>
-				<div className="flex gap-6 items-center">
+				<div className="flex flex-col gap-4 sm:flex-row sm:gap-6 items-start sm:items-center">
 					<div className="space-y-2">
 						<Label>Filter by Product</Label>
 						<Select
@@ -332,103 +332,113 @@ export default function StockMovementsPage() {
 			</div>
 
 			{/* Stock Movement Table */}
-			<div className="rounded-lg border border-border bg-card overflow-hidden">
-				<table className="data-table">
-					<thead>
-						<tr>
-							<th>Movement ID</th>
-							<th>Type</th>
-							<th>Source</th>
-							<th>Product</th>
-							<th className="text-right">Quantity</th>
-							<th className="text-right">Unit Price</th>
-							<th>Note</th>
-							<th>Date & Time</th>
-							<th>Performed By</th>
-						</tr>
-					</thead>
-					<tbody>
-						{filteredMovements.length > 0 ? (
-							filteredMovements.map((movement) => (
-								<tr key={movement.id}>
-									<td>
-										<span className="font-medium">
-											{`MOV-${new Date(
-												movement.created_at,
-											).getFullYear()}-${String(
-												movement.id,
-											).padStart(3, '0')}`}
-										</span>
-									</td>
-									<td>
-										{getTypeBadge(movement.movement_type)}
-									</td>
-									<td>{getSourceBadge(movement.source)}</td>
-									<td>{movement.product?.name}</td>
-									<td className="text-right">
-										<span
-											className={
-												movement.movement_type === 'IN'
-													? 'text-emerald-500'
-													: 'text-blue-500'
-											}
-										>
-											{movement.movement_type === 'IN'
-												? '+'
-												: '-'}
-											{movement.quantity.toLocaleString()}
-										</span>
-									</td>
-									<td className="text-right">
-										KES{' '}
-										{movement.unit_price.toLocaleString(
-											undefined,
-											{
-												minimumFractionDigits: 2,
-												maximumFractionDigits: 2,
-											},
-										) ?? 0}
-									</td>
-									<td className="max-w-[100px] truncate">
-										<Tooltip>
-											<TooltipTrigger asChild>
-												<span>{movement.note}</span>
-											</TooltipTrigger>
-											<TooltipContent>
-												{movement.note}
-											</TooltipContent>
-										</Tooltip>
-									</td>
-									<td>
-										{format(
-											movement.created_at,
-											'dd MMM yyyy',
-										)}{' '}
-										<span className="text-muted-foreground">
+			<div className="rounded-lg border border-border bg-card">
+				<div className="w-full overflow-x-auto">
+					<table className="data-table min-w-[900px]">
+						<thead>
+							<tr>
+								<th>Movement ID</th>
+								<th>Type</th>
+								<th>Source</th>
+								<th>Product</th>
+								<th className="text-right">Quantity</th>
+								<th className="text-right">Unit Price</th>
+								<th>Note</th>
+								<th>Date & Time</th>
+								<th>Performed By</th>
+							</tr>
+						</thead>
+						<tbody>
+							{filteredMovements.length > 0 ? (
+								filteredMovements.map((movement) => (
+									<tr key={movement.id}>
+										<td>
+											<span className="font-medium">
+												{`MOV-${new Date(
+													movement.created_at,
+												).getFullYear()}-${String(
+													movement.id,
+												).padStart(3, '0')}`}
+											</span>
+										</td>
+										<td>
+											{getTypeBadge(
+												movement.movement_type,
+											)}
+										</td>
+										<td>
+											{getSourceBadge(movement.source)}
+										</td>
+										<td>{movement.product?.name}</td>
+										<td className="text-right">
+											<span
+												className={
+													movement.movement_type ===
+													'IN'
+														? 'text-emerald-500'
+														: 'text-blue-500'
+												}
+											>
+												{movement.movement_type === 'IN'
+													? '+'
+													: '-'}
+												{movement.quantity.toLocaleString()}
+											</span>
+										</td>
+										<td className="text-right">
+											KES{' '}
+											{movement.unit_price.toLocaleString(
+												undefined,
+												{
+													minimumFractionDigits: 2,
+													maximumFractionDigits: 2,
+												},
+											) ?? 0}
+										</td>
+										<td className="max-w-[100px] truncate">
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<span>{movement.note}</span>
+												</TooltipTrigger>
+												<TooltipContent>
+													{movement.note}
+												</TooltipContent>
+											</Tooltip>
+										</td>
+										<td>
 											{format(
 												movement.created_at,
-												'HH:mm a',
-											)}
-										</span>
-									</td>
-									<td>
-										{movement.user?.name
-											? movement.user.name
-											: 'System'}
+												'dd MMM yyyy',
+											)}{' '}
+											<span className="text-muted-foreground">
+												{format(
+													movement.created_at,
+													'HH:mm a',
+												)}
+											</span>
+										</td>
+										<td>
+											{movement.user?.name
+												? movement.user.name
+												: 'System'}
+										</td>
+									</tr>
+								))
+							) : (
+								<tr>
+									<td
+										colSpan={9}
+										className="text-center py-8"
+									>
+										<p className="text-muted-foreground">
+											No stock movement items found
+										</p>
 									</td>
 								</tr>
-							))
-						) : (
-							<tr>
-								<td colSpan={9} className="text-center py-8">
-									<p className="text-muted-foreground">
-										No stock movement items found
-									</p>
-								</td>
-							</tr>
-						)}
-					</tbody>
-				</table>
+							)}
+						</tbody>
+					</table>
+				</div>
 			</div>
 
 			{/* Pagination */}

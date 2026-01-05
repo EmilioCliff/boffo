@@ -59,7 +59,8 @@ export default function ResellerDashboard() {
 						Track your sales and manage your inventory.
 					</p>
 				</div>
-				<div className="flex gap-3">
+				{/* <div className="flex gap-3 "> */}
+				<div className="hidden sm:flex gap-3">
 					<Button variant="outline" asChild>
 						<Link to="/reseller/requests">
 							<Package className="mr-2 h-4 w-4" />

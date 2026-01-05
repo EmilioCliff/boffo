@@ -358,126 +358,134 @@ export default function ResellersPage() {
 			</div>
 
 			{/* Resellers Table */}
-			<div className="rounded-lg border border-border bg-card overflow-hidden">
-				<table className="data-table">
-					<thead>
-						<tr>
-							<th>Reseller</th>
-							<th>Phone</th>
-							<th className="text-right">Current Stock</th>
-							<th className="text-right">Total Sales</th>
-							<th className="text-right">Payments</th>
-							<th className="text-right">Balance</th>
-							<th>Status</th>
-							<th>Actions</th>
-						</tr>
-					</thead>
-					<tbody>
-						{filteredResellers.length > 0 ? (
-							filteredResellers.map((reseller) => (
-								<tr key={reseller.user.id}>
-									<td>
-										<div className="flex items-center gap-3">
-											<Avatar className="h-8 w-8">
-												<AvatarFallback className="bg-primary/10 text-primary text-xs">
-													{reseller.user.name
-														.split(' ')
-														.map((n) => n[0])
-														.join('')}
-												</AvatarFallback>
-											</Avatar>
-											<div>
-												<p className="font-medium">
-													{reseller.user.name}
-												</p>
-												<p className="text-xs text-muted-foreground">
-													{reseller.user.email}
-												</p>
+			<div className="rounded-lg border border-border bg-card">
+				<div className="w-full overflow-x-auto">
+					<table className="data-table min-w-[900px]">
+						<thead>
+							<tr>
+								<th>Reseller</th>
+								<th>Phone</th>
+								<th className="text-right">Current Stock</th>
+								<th className="text-right">Total Sales</th>
+								<th className="text-right">Payments</th>
+								<th className="text-right">Balance</th>
+								<th>Status</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							{filteredResellers.length > 0 ? (
+								filteredResellers.map((reseller) => (
+									<tr key={reseller.user.id}>
+										<td>
+											<div className="flex items-center gap-3">
+												<Avatar className="h-8 w-8">
+													<AvatarFallback className="bg-primary/10 text-primary text-xs">
+														{reseller.user.name
+															.split(' ')
+															.map((n) => n[0])
+															.join('')}
+													</AvatarFallback>
+												</Avatar>
+												<div>
+													<p className="font-medium">
+														{reseller.user.name}
+													</p>
+													<p className="text-xs text-muted-foreground">
+														{reseller.user.email}
+													</p>
+												</div>
 											</div>
-										</div>
-									</td>
-									<td>{reseller.user.phone_number}</td>
-									<td className="text-right">
-										{reseller.account.total_stock_received}
-									</td>
-									<td className="text-right">
-										KES{' '}
-										{reseller.account.total_sales_value.toLocaleString(
-											undefined,
+										</td>
+										<td>{reseller.user.phone_number}</td>
+										<td className="text-right">
 											{
-												minimumFractionDigits: 2,
-												maximumFractionDigits: 2,
-											},
-										)}
-									</td>
-									<td className="text-right font-semibold">
-										KES{' '}
-										{reseller.account.total_paid.toLocaleString(
-											undefined,
-											{
-												minimumFractionDigits: 2,
-												maximumFractionDigits: 2,
-											},
-										)}
-									</td>
-									<td className="text-right">
-										<span
-											className={
-												reseller.account.balance > 0
-													? 'text-amber-500 font-medium'
-													: 'text-emerald-500'
+												reseller.account
+													.total_stock_received
 											}
-										>
+										</td>
+										<td className="text-right">
 											KES{' '}
-											{reseller.account.balance.toLocaleString(
+											{reseller.account.total_sales_value.toLocaleString(
 												undefined,
 												{
 													minimumFractionDigits: 2,
 													maximumFractionDigits: 2,
 												},
 											)}
-										</span>
-									</td>
-									<td>
-										{reseller.user.id ? (
-											<Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">
-												Active
-											</Badge>
-										) : (
-											<Badge className="bg-muted text-muted-foreground hover:bg-muted/80">
-												Inactive
-											</Badge>
-										)}
-									</td>
-									<td>
-										<Button
-											size="sm"
-											variant="ghost"
-											className="h-8 gap-1"
-											onClick={() =>
-												// console.log(reseller.user.id)
-												navigate(
-													`/admin/resellers/${reseller.user.id}`,
-												)
-											}
-										>
-											<Eye className="h-4 w-4" />
-											View
-										</Button>
+										</td>
+										<td className="text-right font-semibold">
+											KES{' '}
+											{reseller.account.total_paid.toLocaleString(
+												undefined,
+												{
+													minimumFractionDigits: 2,
+													maximumFractionDigits: 2,
+												},
+											)}
+										</td>
+										<td className="text-right">
+											<span
+												className={
+													reseller.account.balance > 0
+														? 'text-amber-500 font-medium'
+														: 'text-emerald-500'
+												}
+											>
+												KES{' '}
+												{reseller.account.balance.toLocaleString(
+													undefined,
+													{
+														minimumFractionDigits: 2,
+														maximumFractionDigits: 2,
+													},
+												)}
+											</span>
+										</td>
+										<td>
+											{reseller.user.id ? (
+												<Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">
+													Active
+												</Badge>
+											) : (
+												<Badge className="bg-muted text-muted-foreground hover:bg-muted/80">
+													Inactive
+												</Badge>
+											)}
+										</td>
+										<td>
+											<Button
+												size="sm"
+												variant="ghost"
+												className="h-8 gap-1"
+												onClick={() =>
+													// console.log(reseller.user.id)
+													navigate(
+														`/admin/resellers/${reseller.user.id}`,
+													)
+												}
+											>
+												<Eye className="h-4 w-4" />
+												View
+											</Button>
+										</td>
+									</tr>
+								))
+							) : (
+								<tr>
+									<td
+										colSpan={8}
+										className="text-center py-8"
+									>
+										<p className="text-muted-foreground">
+											No reseller items found
+										</p>
 									</td>
 								</tr>
-							))
-						) : (
-							<tr>
-								<td colSpan={8} className="text-center py-8">
-									<p className="text-muted-foreground">
-										No reseller items found
-									</p>
-								</td>
-							</tr>
-						)}
-					</tbody>
-				</table>
+							)}
+						</tbody>
+					</table>
+				</div>
 			</div>
 
 			{/* Pagination */}
