@@ -7,6 +7,7 @@ package generated
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -109,6 +110,58 @@ func (q *Queries) GetResellerAccount(ctx context.Context, resellerID int64) (Res
 	row := q.db.QueryRow(ctx, getResellerAccount, resellerID)
 	var i ResellerAccount
 	err := row.Scan(
+		&i.ResellerID,
+		&i.TotalStockReceived,
+		&i.TotalValueReceived,
+		&i.TotalSalesValue,
+		&i.TotalPaid,
+		&i.TotalCogs,
+		&i.Balance,
+	)
+	return i, err
+}
+
+const getResellerWithAccountByID = `-- name: GetResellerWithAccountByID :one
+SELECT u.id, u.name, u.email, u.phone_number, u.role, u.password, u.refresh_token, u.deleted, u.created_at, ra.reseller_id, ra.total_stock_received, ra.total_value_received, ra.total_sales_value, ra.total_paid, ra.total_cogs, ra.balance
+FROM users u
+JOIN reseller_accounts ra ON ra.reseller_id = u.id
+WHERE 
+    role = 'staff' AND deleted = false
+    AND u.id = $1
+`
+
+type GetResellerWithAccountByIDRow struct {
+	ID                 int64          `json:"id"`
+	Name               string         `json:"name"`
+	Email              string         `json:"email"`
+	PhoneNumber        string         `json:"phone_number"`
+	Role               string         `json:"role"`
+	Password           string         `json:"password"`
+	RefreshToken       pgtype.Text    `json:"refresh_token"`
+	Deleted            bool           `json:"deleted"`
+	CreatedAt          time.Time      `json:"created_at"`
+	ResellerID         int64          `json:"reseller_id"`
+	TotalStockReceived int64          `json:"total_stock_received"`
+	TotalValueReceived pgtype.Numeric `json:"total_value_received"`
+	TotalSalesValue    pgtype.Numeric `json:"total_sales_value"`
+	TotalPaid          pgtype.Numeric `json:"total_paid"`
+	TotalCogs          pgtype.Numeric `json:"total_cogs"`
+	Balance            pgtype.Numeric `json:"balance"`
+}
+
+func (q *Queries) GetResellerWithAccountByID(ctx context.Context, resellerID int64) (GetResellerWithAccountByIDRow, error) {
+	row := q.db.QueryRow(ctx, getResellerWithAccountByID, resellerID)
+	var i GetResellerWithAccountByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.PhoneNumber,
+		&i.Role,
+		&i.Password,
+		&i.RefreshToken,
+		&i.Deleted,
+		&i.CreatedAt,
 		&i.ResellerID,
 		&i.TotalStockReceived,
 		&i.TotalValueReceived,
@@ -241,6 +294,97 @@ func (q *Queries) ListResellerStockCount(ctx context.Context, arg ListResellerSt
 	var total_items int64
 	err := row.Scan(&total_items)
 	return total_items, err
+}
+
+const listResellersWithAccount = `-- name: ListResellersWithAccount :many
+SELECT u.id as user_id, u.name, u.phone_number, u.email, ra.reseller_id, ra.total_stock_received, ra.total_value_received, ra.total_sales_value, ra.total_paid, ra.total_cogs, ra.balance,
+       COALESCE((SELECT SUM(quantity) FROM reseller_stock WHERE reseller_id = u.id), 0)::bigint AS current_stock_units
+FROM users u
+JOIN reseller_accounts ra ON ra.reseller_id = u.id
+WHERE 
+    role = 'staff' AND deleted = false
+    AND (
+        COALESCE($1, '') = '' 
+        OR LOWER(u.name) LIKE $1
+        OR LOWER(u.phone_number) LIKE $1
+         OR LOWER(u.email) LIKE $1
+    )
+ORDER BY u.created_at DESC
+LIMIT $3 OFFSET $2
+`
+
+type ListResellersWithAccountParams struct {
+	Search interface{} `json:"search"`
+	Offset int32       `json:"offset"`
+	Limit  int32       `json:"limit"`
+}
+
+type ListResellersWithAccountRow struct {
+	UserID             int64          `json:"user_id"`
+	Name               string         `json:"name"`
+	PhoneNumber        string         `json:"phone_number"`
+	Email              string         `json:"email"`
+	ResellerID         int64          `json:"reseller_id"`
+	TotalStockReceived int64          `json:"total_stock_received"`
+	TotalValueReceived pgtype.Numeric `json:"total_value_received"`
+	TotalSalesValue    pgtype.Numeric `json:"total_sales_value"`
+	TotalPaid          pgtype.Numeric `json:"total_paid"`
+	TotalCogs          pgtype.Numeric `json:"total_cogs"`
+	Balance            pgtype.Numeric `json:"balance"`
+	CurrentStockUnits  int64          `json:"current_stock_units"`
+}
+
+func (q *Queries) ListResellersWithAccount(ctx context.Context, arg ListResellersWithAccountParams) ([]ListResellersWithAccountRow, error) {
+	rows, err := q.db.Query(ctx, listResellersWithAccount, arg.Search, arg.Offset, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListResellersWithAccountRow{}
+	for rows.Next() {
+		var i ListResellersWithAccountRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Name,
+			&i.PhoneNumber,
+			&i.Email,
+			&i.ResellerID,
+			&i.TotalStockReceived,
+			&i.TotalValueReceived,
+			&i.TotalSalesValue,
+			&i.TotalPaid,
+			&i.TotalCogs,
+			&i.Balance,
+			&i.CurrentStockUnits,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listResellersWithAccountCount = `-- name: ListResellersWithAccountCount :one
+SELECT COUNT(*) AS total_resellers
+FROM users u
+WHERE 
+    role = 'staff' AND deleted = false
+    AND (
+        COALESCE($1, '') = '' 
+        OR LOWER(name) LIKE $1
+        OR LOWER(phone_number) LIKE $1
+        OR LOWER(email) LIKE $1
+    )
+`
+
+func (q *Queries) ListResellersWithAccountCount(ctx context.Context, search interface{}) (int64, error) {
+	row := q.db.QueryRow(ctx, listResellersWithAccountCount, search)
+	var total_resellers int64
+	err := row.Scan(&total_resellers)
+	return total_resellers, err
 }
 
 const subtractResellerStockQuantity = `-- name: SubtractResellerStockQuantity :one

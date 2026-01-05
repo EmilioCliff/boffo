@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"strings"
 
 	"github.com/EmilioCliff/boffo/internal/postgres/generated"
 	"github.com/EmilioCliff/boffo/internal/repository"
@@ -27,6 +28,7 @@ func (smr *StockMovementRepository) List(ctx context.Context, filter *repository
 	listParams := generated.ListStockMovementsParams{
 		Limit:        int32(filter.Pagination.PageSize),
 		Offset:       pkg.Offset(filter.Pagination.Page, filter.Pagination.PageSize),
+		Search:       pgtype.Text{Valid: false},
 		OwnerType:    pgtype.Text{Valid: false},
 		OwnerID:      pgtype.Int8{Valid: false},
 		ProductID:    pgtype.Int8{Valid: false},
@@ -35,11 +37,18 @@ func (smr *StockMovementRepository) List(ctx context.Context, filter *repository
 	}
 
 	countParams := generated.ListStockMovementsCountParams{
+		Search:       pgtype.Text{Valid: false},
 		OwnerType:    pgtype.Text{Valid: false},
 		OwnerID:      pgtype.Int8{Valid: false},
 		ProductID:    pgtype.Int8{Valid: false},
 		MovementType: pgtype.Text{Valid: false},
 		Source:       pgtype.Text{Valid: false},
+	}
+
+	if filter.Search != nil {
+		s := strings.ToLower(*filter.Search)
+		listParams.Search = pgtype.Text{String: "%" + s + "%", Valid: true}
+		countParams.Search = pgtype.Text{String: "%" + s + "%", Valid: true}
 	}
 
 	if filter.OwnerType != nil {

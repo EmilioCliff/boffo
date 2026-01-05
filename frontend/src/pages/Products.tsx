@@ -51,7 +51,7 @@ import GetProducts from '@/services/getProducts';
 import ErrorCard from '@/components/ErrorCard';
 import Pagination from '@/components/Pagination';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ProductFormSchema } from '@/lib/schemas';
@@ -60,7 +60,7 @@ import { toast } from 'react-toastify';
 import CreateProduct from '@/services/createProduct';
 import { Textarea } from '@/components/ui/textarea';
 import Spinner from '@/components/Spinner';
-import DeleteProduct from '@/services/deleteProduct';
+import DeleteProduct from '@/services/admin/deleteProduct';
 import DeleteConfirm from '@/components/DeleteConfirm';
 
 export default function Products() {

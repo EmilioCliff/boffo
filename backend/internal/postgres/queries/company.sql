@@ -23,6 +23,7 @@ SELECT
     p.unit,
     p.price,
     p.low_stock_threshold,
+    p.description,
     cs.quantity AS company_quantity
 FROM company_stock cs
 JOIN products p ON p.id = cs.product_id

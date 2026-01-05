@@ -8,6 +8,8 @@ package generated
 import (
 	"context"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const addBatchInventoryQuantity = `-- name: AddBatchInventoryQuantity :one
@@ -71,6 +73,131 @@ func (q *Queries) GetBatchInventoryProductSum(ctx context.Context, productID int
 	var total_remaining int64
 	err := row.Scan(&total_remaining)
 	return total_remaining, err
+}
+
+const listBatchInventory = `-- name: ListBatchInventory :many
+SELECT pb.id, pb.product_id, pb.batch_number, pb.quantity, pb.purchase_price, pb.date_received, pb.created_at, p.name AS product_name, bi.remaining_quantity, p.price AS product_price, p.unit AS product_unit, p.low_stock_threshold AS product_low_stock_threshold, p.category AS product_category
+FROM product_batches pb
+JOIN products p ON p.id = pb.product_id
+JOIN batch_inventory bi ON bi.batch_id = pb.id
+WHERE 
+    (
+        $1::bigint IS NULL
+        OR pb.product_id = $1
+    )
+    AND (
+        COALESCE($2, '') = '' 
+        OR LOWER(p.name) LIKE $2
+        OR LOWER(p.category) LIKE $2
+        OR LOWER(pb.batch_number) LIKE $2
+    )
+    AND (
+        $3::boolean IS NULL
+        OR ($3 = true AND bi.remaining_quantity > 0)
+        OR ($3 = false AND bi.remaining_quantity = 0)
+    )
+ORDER BY pb.date_received DESC
+LIMIT $5 OFFSET $4
+`
+
+type ListBatchInventoryParams struct {
+	ProductID pgtype.Int8 `json:"product_id"`
+	Search    interface{} `json:"search"`
+	InStock   pgtype.Bool `json:"in_stock"`
+	Offset    int32       `json:"offset"`
+	Limit     int32       `json:"limit"`
+}
+
+type ListBatchInventoryRow struct {
+	ID                       int64          `json:"id"`
+	ProductID                int64          `json:"product_id"`
+	BatchNumber              string         `json:"batch_number"`
+	Quantity                 int64          `json:"quantity"`
+	PurchasePrice            pgtype.Numeric `json:"purchase_price"`
+	DateReceived             time.Time      `json:"date_received"`
+	CreatedAt                time.Time      `json:"created_at"`
+	ProductName              string         `json:"product_name"`
+	RemainingQuantity        int64          `json:"remaining_quantity"`
+	ProductPrice             pgtype.Numeric `json:"product_price"`
+	ProductUnit              string         `json:"product_unit"`
+	ProductLowStockThreshold int32          `json:"product_low_stock_threshold"`
+	ProductCategory          string         `json:"product_category"`
+}
+
+func (q *Queries) ListBatchInventory(ctx context.Context, arg ListBatchInventoryParams) ([]ListBatchInventoryRow, error) {
+	rows, err := q.db.Query(ctx, listBatchInventory,
+		arg.ProductID,
+		arg.Search,
+		arg.InStock,
+		arg.Offset,
+		arg.Limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListBatchInventoryRow{}
+	for rows.Next() {
+		var i ListBatchInventoryRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ProductID,
+			&i.BatchNumber,
+			&i.Quantity,
+			&i.PurchasePrice,
+			&i.DateReceived,
+			&i.CreatedAt,
+			&i.ProductName,
+			&i.RemainingQuantity,
+			&i.ProductPrice,
+			&i.ProductUnit,
+			&i.ProductLowStockThreshold,
+			&i.ProductCategory,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listBatchInventoryCount = `-- name: ListBatchInventoryCount :one
+SELECT COUNT(*) AS total_batches
+FROM product_batches pb
+LEFT JOIN products p ON p.id = pb.product_id
+JOIN batch_inventory bi ON bi.batch_id = pb.id
+WHERE 
+    (
+        $1::bigint IS NULL
+        OR pb.product_id = $1
+    )
+    AND (
+        COALESCE($2, '') = '' 
+        OR LOWER(p.name) LIKE $2
+        OR LOWER(p.category) LIKE $2
+        OR LOWER(pb.batch_number) LIKE $2
+    )
+    AND (
+        $3::boolean IS NULL
+        OR ($3 = true AND bi.remaining_quantity > 0)
+        OR ($3 = false AND bi.remaining_quantity = 0)
+    )
+`
+
+type ListBatchInventoryCountParams struct {
+	ProductID pgtype.Int8 `json:"product_id"`
+	Search    interface{} `json:"search"`
+	InStock   pgtype.Bool `json:"in_stock"`
+}
+
+func (q *Queries) ListBatchInventoryCount(ctx context.Context, arg ListBatchInventoryCountParams) (int64, error) {
+	row := q.db.QueryRow(ctx, listBatchInventoryCount, arg.ProductID, arg.Search, arg.InStock)
+	var total_batches int64
+	err := row.Scan(&total_batches)
+	return total_batches, err
 }
 
 const listBatchInventoryForUpdate = `-- name: ListBatchInventoryForUpdate :many

@@ -51,6 +51,7 @@ SELECT
     p.unit,
     p.price,
     p.low_stock_threshold,
+    p.description,
     cs.quantity AS company_quantity
 FROM company_stock cs
 JOIN products p ON p.id = cs.product_id
@@ -84,6 +85,7 @@ type ListCompanyStockRow struct {
 	Unit              string         `json:"unit"`
 	Price             pgtype.Numeric `json:"price"`
 	LowStockThreshold int32          `json:"low_stock_threshold"`
+	Description       pgtype.Text    `json:"description"`
 	CompanyQuantity   int64          `json:"company_quantity"`
 }
 
@@ -108,6 +110,7 @@ func (q *Queries) ListCompanyStock(ctx context.Context, arg ListCompanyStockPara
 			&i.Unit,
 			&i.Price,
 			&i.LowStockThreshold,
+			&i.Description,
 			&i.CompanyQuantity,
 		); err != nil {
 			return nil, err

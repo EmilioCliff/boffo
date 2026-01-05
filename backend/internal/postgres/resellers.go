@@ -2,6 +2,9 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
+	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/EmilioCliff/boffo/internal/postgres/generated"
@@ -22,6 +25,89 @@ func NewResellerRepository(db *Store) *ResellerRepository {
 		db:      db,
 		queries: generated.New(db.pool),
 	}
+}
+
+func (rr *ResellerRepository) GetResellerByID(ctx context.Context, id uint32) (*repository.Reseller, error) {
+	pgReseller, err := rr.queries.GetResellerWithAccountByID(ctx, int64(id))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, pkg.Errorf(pkg.NOT_FOUND_ERROR, "reseller not found")
+		}
+		return nil, pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get reseller by ID: %s", err.Error())
+	}
+
+	reseller := &repository.Reseller{
+		User: repository.User{
+			ID:          uint32(pgReseller.ID),
+			Name:        pgReseller.Name,
+			Email:       pgReseller.Email,
+			PhoneNumber: pgReseller.PhoneNumber,
+			Role:        pgReseller.Role,
+			Deleted:     pgReseller.Deleted,
+			CreatedAt:   pgReseller.CreatedAt,
+		},
+		Account: repository.ResellerAccount{
+			ResellerID:         uint32(pgReseller.ResellerID),
+			TotalStockReceived: pgReseller.TotalStockReceived,
+			TotalValueReceived: pkg.PgTypeNumericToFloat64(pgReseller.TotalValueReceived),
+			TotalSalesValue:    pkg.PgTypeNumericToFloat64(pgReseller.TotalSalesValue),
+			TotalPaid:          pkg.PgTypeNumericToFloat64(pgReseller.TotalPaid),
+			TotalCogs:          pkg.PgTypeNumericToFloat64(pgReseller.TotalCogs),
+			Balance:            pkg.PgTypeNumericToFloat64(pgReseller.Balance),
+		},
+	}
+
+	return reseller, nil
+}
+
+func (rr *ResellerRepository) ListResellersWithAccount(ctx context.Context, filter *repository.ResellerFilter) ([]*repository.Reseller, *pkg.Pagination, error) {
+	listParams := generated.ListResellersWithAccountParams{
+		Limit:  int32(filter.Pagination.PageSize),
+		Offset: pkg.Offset(filter.Pagination.Page, filter.Pagination.PageSize),
+		Search: pgtype.Text{Valid: false},
+	}
+
+	countSearchParm := pgtype.Text{Valid: false}
+
+	if filter.Search != nil {
+		s := strings.ToLower(*filter.Search)
+		listParams.Search = pgtype.Text{String: "%" + s + "%", Valid: true}
+		countSearchParm = pgtype.Text{String: "%" + s + "%", Valid: true}
+	}
+
+	pgResellers, err := rr.queries.ListResellersWithAccount(ctx, listParams)
+	if err != nil {
+		return nil, nil, pkg.Errorf(pkg.INTERNAL_ERROR, "failed to list resellers with account: %s", err.Error())
+	}
+
+	totalCount, err := rr.queries.ListResellersWithAccountCount(ctx, countSearchParm)
+	if err != nil {
+		return nil, nil, pkg.Errorf(pkg.INTERNAL_ERROR, "failed to count resellers with account: %s", err.Error())
+	}
+
+	resellers := make([]*repository.Reseller, len(pgResellers))
+	for i, pgReseller := range pgResellers {
+		reseller := &repository.Reseller{
+			User: repository.User{
+				ID:          uint32(pgReseller.UserID),
+				Name:        pgReseller.Name,
+				PhoneNumber: pgReseller.PhoneNumber,
+				Email:       pgReseller.Email,
+			},
+			Account: repository.ResellerAccount{
+				ResellerID:         uint32(pgReseller.ResellerID),
+				TotalStockReceived: pgReseller.CurrentStockUnits,
+				TotalValueReceived: pkg.PgTypeNumericToFloat64(pgReseller.TotalValueReceived),
+				TotalSalesValue:    pkg.PgTypeNumericToFloat64(pgReseller.TotalSalesValue),
+				TotalPaid:          pkg.PgTypeNumericToFloat64(pgReseller.TotalPaid),
+				TotalCogs:          pkg.PgTypeNumericToFloat64(pgReseller.TotalCogs),
+				Balance:            pkg.PgTypeNumericToFloat64(pgReseller.Balance),
+			},
+		}
+		resellers[i] = reseller
+	}
+
+	return resellers, pkg.CalculatePagination(uint32(totalCount), filter.Pagination.PageSize, filter.Pagination.Page), nil
 }
 
 func (rr *ResellerRepository) CreateResellerSale(ctx context.Context, sale *repository.ResellerSale) (*repository.ResellerSale, error) {
@@ -137,6 +223,15 @@ func (rr *ResellerRepository) CreateResellerSale(ctx context.Context, sale *repo
 		})
 		if err != nil {
 			return pkg.Errorf(pkg.INTERNAL_ERROR, "failed to update reseller account: %s", err.Error())
+		}
+
+		// create alert
+		if err = q.CreateAlert(ctx, generated.CreateAlertParams{
+			Type:        "RESELLER_SALE",
+			Title:       "Reseller Sale",
+			Description: fmt.Sprintf("%s sold %d units", sale.User.Name, sale.Quantity),
+		}); err != nil {
+			return pkg.Errorf(pkg.INTERNAL_ERROR, "failed to create alert: %s", err.Error())
 		}
 
 		return nil
@@ -304,4 +399,13 @@ func (rr *ResellerRepository) GetResellerAccount(ctx context.Context, resellerID
 	}
 
 	return resellerAccount, nil
+}
+
+func (rr *ResellerRepository) ListResellerStockFormHelpers(ctx context.Context, resellerID uint32) (any, error) {
+	pgHelpers, err := rr.queries.ResellerStockFormHelpers(ctx, int64(resellerID))
+	if err != nil {
+		return nil, pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get reseller stock form helpers: %s", err.Error())
+	}
+
+	return pgHelpers, nil
 }

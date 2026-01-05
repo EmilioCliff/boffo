@@ -6,6 +6,8 @@ package generated
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
@@ -14,6 +16,7 @@ type Querier interface {
 	AddResellerStockQuantity(ctx context.Context, arg AddResellerStockQuantityParams) (ResellerStock, error)
 	CancelGoodsRequest(ctx context.Context, id int64) (GoodsRequest, error)
 	CheckResellerStockExists(ctx context.Context, arg CheckResellerStockExistsParams) (bool, error)
+	CreateAlert(ctx context.Context, arg CreateAlertParams) error
 	CreateBatchInventoryRecord(ctx context.Context, arg CreateBatchInventoryRecordParams) (BatchInventory, error)
 	CreateCompanyStock(ctx context.Context, productID int64) (CompanyStock, error)
 	CreateGoodsRequest(ctx context.Context, arg CreateGoodsRequestParams) (GoodsRequest, error)
@@ -30,11 +33,22 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteProduct(ctx context.Context, id int64) error
 	DeleteUser(ctx context.Context, id int64) error
+	GetAdminBatchesPageStats(ctx context.Context) ([]byte, error)
+	GetAdminDashboardStats(ctx context.Context) ([]byte, error)
+	GetAdminDistributionPageStats(ctx context.Context) ([]byte, error)
+	GetAdminGoodsRequestsPageStats(ctx context.Context) ([]byte, error)
+	GetAdminPaymentsPageStats(ctx context.Context) ([]byte, error)
+	GetAdminProductsPageStats(ctx context.Context) ([]byte, error)
+	GetAdminResellersPageStats(ctx context.Context) ([]byte, error)
 	GetAdminStats(ctx context.Context, id int32) (AdminStat, error)
+	GetAdminStockMovementsPageStats(ctx context.Context) ([]byte, error)
+	GetAdminWeeklyStockChart(ctx context.Context) ([]GetAdminWeeklyStockChartRow, error)
 	GetBatchInventoryProductSum(ctx context.Context, productID int64) (int64, error)
 	GetProductByID(ctx context.Context, id int64) (Product, error)
 	GetResellerAccount(ctx context.Context, resellerID int64) (ResellerAccount, error)
 	GetResellerBatchInventoryProductSum(ctx context.Context, arg GetResellerBatchInventoryProductSumParams) (int64, error)
+	GetResellerDashboardData(ctx context.Context, resellerID int64) ([]byte, error)
+	GetResellerGoodsRequestsPageStats(ctx context.Context, resellerID int64) ([]byte, error)
 	// -- name: GetDashboardData :one
 	// WITH low_stock AS (
 	//   SELECT id, name, stock, low_stock_threshold
@@ -94,8 +108,17 @@ type Querier interface {
 	// LEFT JOIN sales_data sd ON ds.day = sd.day
 	// ORDER BY ds.day;
 	GetResellerNameByID(ctx context.Context, resellerID int64) (string, error)
+	GetResellerSalesPageStats(ctx context.Context, resellerID int64) ([]byte, error)
+	GetResellerStockPageStats(ctx context.Context, resellerID int64) ([]byte, error)
+	GetResellerWithAccountByID(ctx context.Context, resellerID int64) (GetResellerWithAccountByIDRow, error)
+	GetTotalActiveResellers(ctx context.Context) (int64, error)
+	GetTotalLowStockProducts(ctx context.Context) (int64, error)
+	GetTotalOutstandingPayments(ctx context.Context) (pgtype.Numeric, error)
+	GetTotalPendingGoodsRequests(ctx context.Context) (int64, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id int64) (User, error)
+	ListBatchInventory(ctx context.Context, arg ListBatchInventoryParams) ([]ListBatchInventoryRow, error)
+	ListBatchInventoryCount(ctx context.Context, arg ListBatchInventoryCountParams) (int64, error)
 	ListBatchInventoryForUpdate(ctx context.Context, productID int64) ([]ListBatchInventoryForUpdateRow, error)
 	ListCompanyStock(ctx context.Context, arg ListCompanyStockParams) ([]ListCompanyStockRow, error)
 	ListCompanyStockCount(ctx context.Context, arg ListCompanyStockCountParams) (int64, error)
@@ -114,6 +137,8 @@ type Querier interface {
 	ListResellerSalesCount(ctx context.Context, arg ListResellerSalesCountParams) (int64, error)
 	ListResellerStock(ctx context.Context, arg ListResellerStockParams) ([]ListResellerStockRow, error)
 	ListResellerStockCount(ctx context.Context, arg ListResellerStockCountParams) (int64, error)
+	ListResellersWithAccount(ctx context.Context, arg ListResellersWithAccountParams) ([]ListResellersWithAccountRow, error)
+	ListResellersWithAccountCount(ctx context.Context, search interface{}) (int64, error)
 	ListStockDistributions(ctx context.Context, arg ListStockDistributionsParams) ([]ListStockDistributionsRow, error)
 	ListStockDistributionsCount(ctx context.Context, arg ListStockDistributionsCountParams) (int64, error)
 	ListStockMovementBatchesByBatchID(ctx context.Context, batchID int64) ([]StockMovementBatch, error)
@@ -126,6 +151,7 @@ type Querier interface {
 	RemoveBatchInventoryQuantity(ctx context.Context, arg RemoveBatchInventoryQuantityParams) (BatchInventory, error)
 	RemoveCompanyStock(ctx context.Context, arg RemoveCompanyStockParams) (CompanyStock, error)
 	RemoveResellerBatchInventoryQuantity(ctx context.Context, arg RemoveResellerBatchInventoryQuantityParams) (ResellerBatchInventory, error)
+	ResellerStockFormHelpers(ctx context.Context, resellerID int64) ([]ResellerStockFormHelpersRow, error)
 	SubtractResellerStockQuantity(ctx context.Context, arg SubtractResellerStockQuantityParams) (ResellerStock, error)
 	UpdateAdminStats(ctx context.Context, arg UpdateAdminStatsParams) (AdminStat, error)
 	UpdateGoodsRequestAdmin(ctx context.Context, arg UpdateGoodsRequestAdminParams) (GoodsRequest, error)
@@ -134,6 +160,7 @@ type Querier interface {
 	UpdateResellerAccount(ctx context.Context, arg UpdateResellerAccountParams) (ResellerAccount, error)
 	UpdateResellerStockThreshold(ctx context.Context, arg UpdateResellerStockThresholdParams) (ResellerStock, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
+	UserHelpers(ctx context.Context) ([]UserHelpersRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

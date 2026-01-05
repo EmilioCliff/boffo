@@ -23,6 +23,7 @@ type Payment struct {
 
 type PaymentFilter struct {
 	Pagination *pkg.Pagination
+	Search     *string
 	ResellerID *uint32
 	Method     *string
 	RecordedBy *string

@@ -92,6 +92,15 @@ func (cr *CompanyRepository) AddProductBatch(ctx context.Context, batch *reposit
 			return pkg.Errorf(pkg.INTERNAL_ERROR, "failed to update admin stats: %s", err.Error())
 		}
 
+		// create alert
+		if err = q.CreateAlert(ctx, generated.CreateAlertParams{
+			Type:        "STOCK_RECEIVED",
+			Title:       "Stock received",
+			Description: fmt.Sprintf("Batch #%s - %d units", pgProductBatch.BatchNumber, pgProductBatch.Quantity),
+		}); err != nil {
+			return pkg.Errorf(pkg.INTERNAL_ERROR, "failed to create alert: %s", err.Error())
+		}
+
 		return nil
 	})
 	if err != nil {
@@ -102,15 +111,17 @@ func (cr *CompanyRepository) AddProductBatch(ctx context.Context, batch *reposit
 }
 
 func (cr *CompanyRepository) ListProductBatches(ctx context.Context, filter *repository.ProductBatchFilter) ([]*repository.ProductBatch, *pkg.Pagination, error) {
-	listParams := generated.ListProductBatchesParams{
+	listParams := generated.ListBatchInventoryParams{
 		Limit:     int32(filter.Pagination.PageSize),
 		Offset:    pkg.Offset(filter.Pagination.Page, filter.Pagination.PageSize),
 		Search:    pgtype.Text{Valid: false},
 		ProductID: pgtype.Int8{Valid: false},
+		InStock:   pgtype.Bool{Valid: false},
 	}
-	countParams := generated.ListProductBatchesCountParams{
+	countParams := generated.ListBatchInventoryCountParams{
 		Search:    pgtype.Text{Valid: false},
 		ProductID: pgtype.Int8{Valid: false},
+		InStock:   pgtype.Bool{Valid: false},
 	}
 
 	if filter.Search != nil {
@@ -119,17 +130,22 @@ func (cr *CompanyRepository) ListProductBatches(ctx context.Context, filter *rep
 		countParams.Search = pgtype.Text{String: "%" + s + "%", Valid: true}
 	}
 
+	if filter.InStock != nil {
+		listParams.InStock = pgtype.Bool{Bool: *filter.InStock, Valid: true}
+		countParams.InStock = pgtype.Bool{Bool: *filter.InStock, Valid: true}
+	}
+
 	if filter.ProductID != nil {
 		listParams.ProductID = pgtype.Int8{Int64: int64(*filter.ProductID), Valid: true}
 		countParams.ProductID = pgtype.Int8{Int64: int64(*filter.ProductID), Valid: true}
 	}
 
-	pgBatches, err := cr.queries.ListProductBatches(ctx, listParams)
+	pgBatches, err := cr.queries.ListBatchInventory(ctx, listParams)
 	if err != nil {
 		return nil, nil, pkg.Errorf(pkg.INTERNAL_ERROR, "failed to list product batches: %s", err.Error())
 	}
 
-	totalCount, err := cr.queries.ListProductBatchesCount(ctx, countParams)
+	totalCount, err := cr.queries.ListBatchInventoryCount(ctx, countParams)
 	if err != nil {
 		return nil, nil, pkg.Errorf(pkg.INTERNAL_ERROR, "failed to count product batches: %s", err.Error())
 	}
@@ -137,13 +153,15 @@ func (cr *CompanyRepository) ListProductBatches(ctx context.Context, filter *rep
 	batches := make([]*repository.ProductBatch, len(pgBatches))
 	for i, pgBatch := range pgBatches {
 		batches[i] = &repository.ProductBatch{
-			ID:            uint32(pgBatch.ID),
-			ProductID:     uint32(pgBatch.ProductID),
-			BatchNumber:   pgBatch.BatchNumber,
-			Quantity:      pgBatch.Quantity,
-			PurchasePrice: pkg.PgTypeNumericToFloat64(pgBatch.PurchasePrice),
-			DateReceived:  pgBatch.DateReceived,
-			CreatedAt:     pgBatch.CreatedAt,
+			ID:                uint32(pgBatch.ID),
+			ProductID:         uint32(pgBatch.ProductID),
+			BatchNumber:       pgBatch.BatchNumber,
+			Quantity:          pgBatch.Quantity,
+			PurchasePrice:     pkg.PgTypeNumericToFloat64(pgBatch.PurchasePrice),
+			DateReceived:      pgBatch.DateReceived,
+			CreatedAt:         pgBatch.CreatedAt,
+			ProductCategory:   pgBatch.ProductCategory,
+			RemainingQuantity: pgBatch.RemainingQuantity,
 			Product: &repository.ProductShort{
 				ID:                uint32(pgBatch.ProductID),
 				Name:              pgBatch.ProductName,
@@ -349,6 +367,15 @@ func (cr *CompanyRepository) DistributeStockToReseller(ctx context.Context, dist
 			return pkg.Errorf(pkg.INTERNAL_ERROR, "failed to update reseller account: %s", err.Error())
 		}
 
+		// create alert
+		if err = q.CreateAlert(ctx, generated.CreateAlertParams{
+			Type:        "STOCK_DISTRIBUTED",
+			Title:       "Stock distributed",
+			Description: fmt.Sprintf("To %s - %d units", resellerName, distribution.Quantity),
+		}); err != nil {
+			return pkg.Errorf(pkg.INTERNAL_ERROR, "failed to create alert: %s", err.Error())
+		}
+
 		return nil
 	})
 	if err != nil {
@@ -464,14 +491,16 @@ func (cr *CompanyRepository) ListCompanyStock(ctx context.Context, filter *repos
 	stocks := make([]*repository.CompanyStock, len(pgStocks))
 	for i, pgStock := range pgStocks {
 		stocks[i] = &repository.CompanyStock{
-			ProductID: uint32(pgStock.ProductID),
-			Quantity:  pgStock.CompanyQuantity,
+			ProductID:       uint32(pgStock.ProductID),
+			Quantity:        pgStock.CompanyQuantity,
+			ProductCategory: pgStock.Category,
 			Product: &repository.ProductShort{
 				ID:                uint32(pgStock.ProductID),
 				Name:              pgStock.Name,
 				Price:             pkg.PgTypeNumericToFloat64(pgStock.Price),
 				Unit:              pgStock.Unit,
 				LowStockThreshold: int32(pgStock.LowStockThreshold),
+				Description:       pgStock.Description.String,
 			},
 		}
 	}
@@ -485,10 +514,34 @@ func (cr *CompanyRepository) GetAdminStats(ctx context.Context) (*repository.Adm
 		return nil, pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get admin stats: %s", err.Error())
 	}
 
+	totalOutstandingPayments, err := cr.queries.GetTotalOutstandingPayments(ctx)
+	if err != nil {
+		return nil, pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get total outstanding reseller payments: %s", err.Error())
+	}
+
+	totalActiveResellers, err := cr.queries.GetTotalActiveResellers(ctx)
+	if err != nil {
+		return nil, pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get total active resellers: %s", err.Error())
+	}
+
+	totalPendingRequests, err := cr.queries.GetTotalPendingGoodsRequests(ctx)
+	if err != nil {
+		return nil, pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get total pending goods requests: %s", err.Error())
+	}
+
+	totalLowStockProducts, err := cr.queries.GetTotalLowStockProducts(ctx)
+	if err != nil {
+		return nil, pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get total low stock products: %s", err.Error())
+	}
+
 	return &repository.AdminStat{
-		TotalCompanyStock:     uint32(pgStats.TotalCompanyStock),
-		TotalStockDistributed: uint32(pgStats.TotalStockDistributed),
-		TotalValueDistributed: pkg.PgTypeNumericToFloat64(pgStats.TotalValueDistributed),
-		TotalPaymentsReceived: pkg.PgTypeNumericToFloat64(pgStats.TotalPaymentsReceived),
+		TotalCompanyStock:        uint32(pgStats.TotalCompanyStock),
+		TotalStockDistributed:    uint32(pgStats.TotalStockDistributed),
+		TotalValueDistributed:    pkg.PgTypeNumericToFloat64(pgStats.TotalValueDistributed),
+		TotalPaymentsReceived:    pkg.PgTypeNumericToFloat64(pgStats.TotalPaymentsReceived),
+		TotalOutstandingPayments: pkg.PgTypeNumericToFloat64(totalOutstandingPayments),
+		TotalActiveResellers:     uint32(totalActiveResellers),
+		TotalPendingRequests:     uint32(totalPendingRequests),
+		TotalLowStockProducts:    uint32(totalLowStockProducts),
 	}, nil
 }

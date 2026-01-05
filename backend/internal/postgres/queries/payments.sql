@@ -4,12 +4,18 @@ VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
 
 -- name: ListPayments :many
-SELECT p.*, u.name, u.phone_number FROM payments p
+SELECT p.*, u.name, u.phone_number 
+FROM payments p
 JOIN users u ON u.id = p.reseller_id
 WHERE 
     (
         sqlc.narg('reseller_id')::bigint IS NULL
         OR p.reseller_id = sqlc.narg('reseller_id')
+    )
+    AND (
+        COALESCE(sqlc.narg('search'), '') = '' 
+        OR LOWER(u.name) LIKE sqlc.narg('search')
+        OR LOWER(p.reference) LIKE sqlc.narg('search')
     )
     AND (
         sqlc.narg('method')::text IS NULL
@@ -33,10 +39,16 @@ LIMIT sqlc.arg('limit') OFFSET sqlc.arg('offset');
 -- name: ListPaymentsCount :one
 SELECT COUNT(*) AS total_payments
 FROM payments p
+JOIN users u ON u.id = p.reseller_id
 WHERE 
     (
         sqlc.narg('reseller_id')::bigint IS NULL
         OR p.reseller_id = sqlc.narg('reseller_id')
+    )
+    AND (
+        COALESCE(sqlc.narg('search'), '') = '' 
+        OR LOWER(u.name) LIKE sqlc.narg('search')
+        OR LOWER(p.reference) LIKE sqlc.narg('search')
     )
     AND (
         sqlc.narg('method')::text IS NULL

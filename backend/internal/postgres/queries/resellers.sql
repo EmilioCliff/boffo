@@ -1,3 +1,39 @@
+-- name: GetResellerWithAccountByID :one
+SELECT u.*, ra.*
+FROM users u
+JOIN reseller_accounts ra ON ra.reseller_id = u.id
+WHERE 
+    role = 'staff' AND deleted = false
+    AND u.id = sqlc.arg('reseller_id');
+
+-- name: ListResellersWithAccount :many
+SELECT u.id as user_id, u.name, u.phone_number, u.email, ra.*,
+       COALESCE((SELECT SUM(quantity) FROM reseller_stock WHERE reseller_id = u.id), 0)::bigint AS current_stock_units
+FROM users u
+JOIN reseller_accounts ra ON ra.reseller_id = u.id
+WHERE 
+    role = 'staff' AND deleted = false
+    AND (
+        COALESCE(sqlc.narg('search'), '') = '' 
+        OR LOWER(u.name) LIKE sqlc.narg('search')
+        OR LOWER(u.phone_number) LIKE sqlc.narg('search')
+         OR LOWER(u.email) LIKE sqlc.narg('search')
+    )
+ORDER BY u.created_at DESC
+LIMIT sqlc.arg('limit') OFFSET sqlc.arg('offset');
+
+-- name: ListResellersWithAccountCount :one
+SELECT COUNT(*) AS total_resellers
+FROM users u
+WHERE 
+    role = 'staff' AND deleted = false
+    AND (
+        COALESCE(sqlc.narg('search'), '') = '' 
+        OR LOWER(name) LIKE sqlc.narg('search')
+        OR LOWER(phone_number) LIKE sqlc.narg('search')
+        OR LOWER(email) LIKE sqlc.narg('search')
+    );
+
 -- name: CheckResellerStockExists :one
 SELECT EXISTS (
     SELECT 1 FROM reseller_stock

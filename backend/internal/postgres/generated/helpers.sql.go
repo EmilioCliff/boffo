@@ -11,6 +11,23 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createAlert = `-- name: CreateAlert :exec
+INSERT INTO activities (title, description, type)
+VALUES ($1, $2, $3)
+RETURNING id, title, description, type, created_at
+`
+
+type CreateAlertParams struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Type        string `json:"type"`
+}
+
+func (q *Queries) CreateAlert(ctx context.Context, arg CreateAlertParams) error {
+	_, err := q.db.Exec(ctx, createAlert, arg.Title, arg.Description, arg.Type)
+	return err
+}
+
 const getAdminStats = `-- name: GetAdminStats :one
 SELECT id, total_company_stock, total_stock_distributed, total_value_distributed, total_payments_received FROM admin_stats
 WHERE id = $1
@@ -115,6 +132,129 @@ func (q *Queries) GetResellerNameByID(ctx context.Context, resellerID int64) (st
 	return name, err
 }
 
+const getTotalActiveResellers = `-- name: GetTotalActiveResellers :one
+SELECT COUNT(*) AS total_active_resellers
+FROM users
+WHERE role = 'staff' AND deleted = false
+`
+
+func (q *Queries) GetTotalActiveResellers(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, getTotalActiveResellers)
+	var total_active_resellers int64
+	err := row.Scan(&total_active_resellers)
+	return total_active_resellers, err
+}
+
+const getTotalLowStockProducts = `-- name: GetTotalLowStockProducts :one
+SELECT COUNT(p.*) AS total_low_stock_products
+FROM products p
+JOIN company_stock cs ON cs.product_id = p.id
+WHERE p.deleted = false AND cs.quantity <= p.low_stock_threshold
+`
+
+func (q *Queries) GetTotalLowStockProducts(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, getTotalLowStockProducts)
+	var total_low_stock_products int64
+	err := row.Scan(&total_low_stock_products)
+	return total_low_stock_products, err
+}
+
+const getTotalOutstandingPayments = `-- name: GetTotalOutstandingPayments :one
+SELECT COALESCE(SUM(balance), 0)::numeric AS total_outstanding_payments
+FROM reseller_accounts
+`
+
+func (q *Queries) GetTotalOutstandingPayments(ctx context.Context) (pgtype.Numeric, error) {
+	row := q.db.QueryRow(ctx, getTotalOutstandingPayments)
+	var total_outstanding_payments pgtype.Numeric
+	err := row.Scan(&total_outstanding_payments)
+	return total_outstanding_payments, err
+}
+
+const getTotalPendingGoodsRequests = `-- name: GetTotalPendingGoodsRequests :one
+SELECT COUNT(*) AS total_pending_requests
+FROM goods_requests
+WHERE status = 'PENDING' AND cancelled = false
+`
+
+func (q *Queries) GetTotalPendingGoodsRequests(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, getTotalPendingGoodsRequests)
+	var total_pending_requests int64
+	err := row.Scan(&total_pending_requests)
+	return total_pending_requests, err
+}
+
+const productHelpers = `-- name: ProductHelpers :many
+SELECT id, name FROM products
+WHERE deleted = false
+ORDER BY name
+`
+
+type ProductHelpersRow struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+func (q *Queries) ProductHelpers(ctx context.Context) ([]ProductHelpersRow, error) {
+	rows, err := q.db.Query(ctx, productHelpers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ProductHelpersRow{}
+	for rows.Next() {
+		var i ProductHelpersRow
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const resellerStockFormHelpers = `-- name: ResellerStockFormHelpers :many
+SELECT p.id, p.name, rs.quantity, rs.low_stock_threshold
+FROM products p
+JOIN reseller_stock rs ON rs.product_id = p.id AND rs.reseller_id = $1
+WHERE p.deleted = false
+ORDER BY p.name
+`
+
+type ResellerStockFormHelpersRow struct {
+	ID                int64  `json:"id"`
+	Name              string `json:"name"`
+	Quantity          int64  `json:"quantity"`
+	LowStockThreshold int32  `json:"low_stock_threshold"`
+}
+
+func (q *Queries) ResellerStockFormHelpers(ctx context.Context, resellerID int64) ([]ResellerStockFormHelpersRow, error) {
+	rows, err := q.db.Query(ctx, resellerStockFormHelpers, resellerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ResellerStockFormHelpersRow{}
+	for rows.Next() {
+		var i ResellerStockFormHelpersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Quantity,
+			&i.LowStockThreshold,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateAdminStats = `-- name: UpdateAdminStats :one
 UPDATE admin_stats
 SET total_company_stock = coalesce($1, total_company_stock),
@@ -150,4 +290,35 @@ func (q *Queries) UpdateAdminStats(ctx context.Context, arg UpdateAdminStatsPara
 		&i.TotalPaymentsReceived,
 	)
 	return i, err
+}
+
+const userHelpers = `-- name: UserHelpers :many
+SELECT id, name FROM users
+WHERE deleted = false and role = 'staff'
+ORDER BY name
+`
+
+type UserHelpersRow struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+func (q *Queries) UserHelpers(ctx context.Context) ([]UserHelpersRow, error) {
+	rows, err := q.db.Query(ctx, userHelpers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []UserHelpersRow{}
+	for rows.Next() {
+		var i UserHelpersRow
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

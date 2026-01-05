@@ -23,11 +23,15 @@ type CompanyStockFilter struct {
 }
 
 type AdminStat struct {
-	ID                    uint32  `json:"id"`
-	TotalCompanyStock     uint32  `json:"total_company_stock"`
-	TotalStockDistributed uint32  `json:"total_stock_distributed"`
-	TotalValueDistributed float64 `json:"total_value_distributed"`
-	TotalPaymentsReceived float64 `json:"total_payments_received"`
+	ID                       uint32  `json:"id"`
+	TotalCompanyStock        uint32  `json:"TotalCompanyStock"`
+	TotalStockDistributed    uint32  `json:"TotalStockDistributed"`
+	TotalValueDistributed    float64 `json:"TotalValueDistributed"`
+	TotalPaymentsReceived    float64 `json:"TotalPaymentsReceived"`
+	TotalOutstandingPayments float64 `json:"TotalOutstandingPayments"`
+	TotalActiveResellers     uint32  `json:"TotalActiveResellers"`
+	TotalPendingRequests     uint32  `json:"TotalPendingRequests"`
+	TotalLowStockProducts    uint32  `json:"TotalLowStockProducts"`
 }
 
 type ProductBatch struct {
@@ -40,12 +44,15 @@ type ProductBatch struct {
 	CreatedAt     time.Time `json:"created_at"`
 
 	// expandable fields
-	Product *ProductShort `json:"product,omitempty"`
+	RemainingQuantity int64         `json:"remaining_quantity,omitempty"`
+	ProductCategory   string        `json:"product_category,omitempty"`
+	Product           *ProductShort `json:"product,omitempty"`
 }
 
 type ProductBatchFilter struct {
 	Pagination *pkg.Pagination
 	ProductID  *uint32
+	InStock    *bool
 	Search     *string
 }
 
@@ -86,4 +93,7 @@ type CompanyRepository interface {
 
 	// Admin stats
 	GetAdminStats(ctx context.Context) (*AdminStat, error)
+
+	// Helpers
+	GetAdminPageData(ctx context.Context, page string) (any, error)
 }

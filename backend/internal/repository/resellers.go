@@ -64,7 +64,22 @@ type ResellerAccount struct {
 	Balance            float64 `json:"balance"`
 }
 
+type Reseller struct {
+	User    User            `json:"user"`
+	Account ResellerAccount `json:"account"`
+}
+
+type ResellerFilter struct {
+	Pagination *pkg.Pagination
+	Search     *string
+}
+
 type ResellerRepository interface {
+	// Resellers With Account Info
+	ListResellerStockFormHelpers(ctx context.Context, resellerID uint32) (any, error)
+	GetResellerByID(ctx context.Context, id uint32) (*Reseller, error)
+	ListResellersWithAccount(ctx context.Context, filter *ResellerFilter) ([]*Reseller, *pkg.Pagination, error)
+
 	// Goods requests
 	CreateGoodsRequest(ctx context.Context, request *GoodsRequest) (*GoodsRequest, error)
 	ListGoodsRequestsByReseller(ctx context.Context, filter *GoodRequestFilter) ([]*GoodsRequest, *pkg.Pagination, error)
@@ -81,4 +96,7 @@ type ResellerRepository interface {
 
 	// Account
 	GetResellerAccount(ctx context.Context, resellerID uint32) (*ResellerAccount, error)
+
+	// Helpers
+	GetResellerPageData(ctx context.Context, resellerID uint32, page string) (any, error)
 }

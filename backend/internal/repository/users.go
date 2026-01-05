@@ -26,6 +26,9 @@ type UserShort struct {
 	ID          uint32 `json:"id"`
 	Name        string `json:"name"`
 	PhoneNumber string `json:"phone_number"`
+
+	// optional fields
+	Email string `json:"email,omitempty"`
 }
 
 type UserUpdate struct {
@@ -52,4 +55,5 @@ type UserRepository interface {
 	List(ctx context.Context, filter *UserFilter) ([]*User, *pkg.Pagination, error)
 
 	GetUserInternalByEmail(ctx context.Context, email string) (*User, string, string, error)
+	UserFormHelper(ctx context.Context) (any, error)
 }

@@ -194,6 +194,15 @@ func (ur *UserRepository) List(ctx context.Context, filter *repository.UserFilte
 	return users, pkg.CalculatePagination(uint32(totalCount), filter.Pagination.PageSize, filter.Pagination.Page), nil
 }
 
+func (ur *UserRepository) UserFormHelper(ctx context.Context) (any, error) {
+	users, err := ur.queries.UserHelpers(ctx)
+	if err != nil {
+		return nil, pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get user helpers: %s", err.Error())
+	}
+
+	return users, nil
+}
+
 func pgUserToRepoUser(pgUser generated.User) *repository.User {
 	return &repository.User{
 		ID:          uint32(pgUser.ID),

@@ -131,7 +131,7 @@ CREATE TABLE stock_movements (
     owner_id BIGINT, -- NULL for COMPANY, reseller_id for RESELLER
     movement_type VARCHAR(20) NOT NULL CHECK (movement_type IN ('IN', 'OUT')),
     quantity BIGINT NOT NULL CHECK (quantity > 0),
-    unit_price NUMERIC(10,2),
+    unit_price NUMERIC(10,2) NOT NULL,
     source VARCHAR(30) NOT NULL CHECK (source IN ('PURCHASE', 'DISTRIBUTION', 'SALE')),
     note TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()

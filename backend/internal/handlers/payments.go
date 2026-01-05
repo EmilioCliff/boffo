@@ -68,6 +68,7 @@ func (s *Server) listPaymentsHandler(ctx *gin.Context) {
 			Page:     uint32(pageNo),
 			PageSize: uint32(pageSize),
 		},
+		Search:     nil,
 		ResellerID: nil,
 		Method:     nil,
 		RecordedBy: nil,
@@ -94,6 +95,10 @@ func (s *Server) listPaymentsHandler(ctx *gin.Context) {
 			}
 			filter.ResellerID = &resellerID
 		}
+	}
+
+	if search := ctx.Query("search"); search != "" {
+		filter.Search = &search
 	}
 
 	if method := ctx.Query("method"); method != "" {

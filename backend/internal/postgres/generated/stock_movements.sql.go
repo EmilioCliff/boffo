@@ -68,27 +68,33 @@ WHERE
         OR sm.owner_type = $1
     )
     AND (
-        $2::bigint IS NULL
-        OR sm.owner_id = $2
+        COALESCE($2, '') = '' 
+        OR LOWER(u.name) LIKE $2
+        OR LOWER(p.name) LIKE $2
     )
     AND (
         $3::bigint IS NULL
-        OR sm.product_id = $3
+        OR sm.owner_id = $3
     )
     AND (
-        $4::text IS NULL
-        OR sm.movement_type = $4
+        $4::bigint IS NULL
+        OR sm.product_id = $4
     )
     AND (
         $5::text IS NULL
-        OR sm.source = $5
+        OR sm.movement_type = $5
+    )
+    AND (
+        $6::text IS NULL
+        OR sm.source = $6
     )
 ORDER BY sm.created_at DESC
-LIMIT $7 OFFSET $6
+LIMIT $8 OFFSET $7
 `
 
 type ListStockMovementsParams struct {
 	OwnerType    pgtype.Text `json:"owner_type"`
+	Search       interface{} `json:"search"`
 	OwnerID      pgtype.Int8 `json:"owner_id"`
 	ProductID    pgtype.Int8 `json:"product_id"`
 	MovementType pgtype.Text `json:"movement_type"`
@@ -118,6 +124,7 @@ type ListStockMovementsRow struct {
 func (q *Queries) ListStockMovements(ctx context.Context, arg ListStockMovementsParams) ([]ListStockMovementsRow, error) {
 	rows, err := q.db.Query(ctx, listStockMovements,
 		arg.OwnerType,
+		arg.Search,
 		arg.OwnerID,
 		arg.ProductID,
 		arg.MovementType,
@@ -162,31 +169,39 @@ func (q *Queries) ListStockMovements(ctx context.Context, arg ListStockMovements
 const listStockMovementsCount = `-- name: ListStockMovementsCount :one
 SELECT COUNT(*) AS total_movements
 FROM stock_movements sm
+LEFT JOIN products p ON p.id = sm.product_id
+LEFT JOIN users u ON u.id = sm.owner_id AND sm.owner_type = 'RESELLER'
 WHERE 
     (
         $1::text IS NULL
         OR sm.owner_type = $1
     )
-    AND (
-        $2::bigint IS NULL
-        OR sm.owner_id = $2
+     AND (
+        COALESCE($2, '') = '' 
+        OR LOWER(u.name) LIKE $2
+        OR LOWER(p.name) LIKE $2
     )
     AND (
         $3::bigint IS NULL
-        OR sm.product_id = $3
+        OR sm.owner_id = $3
     )
     AND (
-        $4::text IS NULL
-        OR sm.movement_type = $4
+        $4::bigint IS NULL
+        OR sm.product_id = $4
     )
     AND (
         $5::text IS NULL
-        OR sm.source = $5
+        OR sm.movement_type = $5
+    )
+    AND (
+        $6::text IS NULL
+        OR sm.source = $6
     )
 `
 
 type ListStockMovementsCountParams struct {
 	OwnerType    pgtype.Text `json:"owner_type"`
+	Search       interface{} `json:"search"`
 	OwnerID      pgtype.Int8 `json:"owner_id"`
 	ProductID    pgtype.Int8 `json:"product_id"`
 	MovementType pgtype.Text `json:"movement_type"`
@@ -196,6 +211,7 @@ type ListStockMovementsCountParams struct {
 func (q *Queries) ListStockMovementsCount(ctx context.Context, arg ListStockMovementsCountParams) (int64, error) {
 	row := q.db.QueryRow(ctx, listStockMovementsCount,
 		arg.OwnerType,
+		arg.Search,
 		arg.OwnerID,
 		arg.ProductID,
 		arg.MovementType,

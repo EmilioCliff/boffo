@@ -74,3 +74,45 @@ RETURNING *;
 -- name: GetAdminStats :one
 SELECT * FROM admin_stats
 WHERE id = sqlc.arg('id');
+
+-- name: GetTotalOutstandingPayments :one
+SELECT COALESCE(SUM(balance), 0)::numeric AS total_outstanding_payments
+FROM reseller_accounts;
+
+-- name: GetTotalActiveResellers :one
+SELECT COUNT(*) AS total_active_resellers
+FROM users
+WHERE role = 'staff' AND deleted = false;
+
+-- name: GetTotalPendingGoodsRequests :one
+SELECT COUNT(*) AS total_pending_requests
+FROM goods_requests
+WHERE status = 'PENDING' AND cancelled = false;
+
+-- name: GetTotalLowStockProducts :one
+SELECT COUNT(p.*) AS total_low_stock_products
+FROM products p
+JOIN company_stock cs ON cs.product_id = p.id
+WHERE p.deleted = false AND cs.quantity <= p.low_stock_threshold;
+
+-- name: ProductHelpers :many
+SELECT id, name FROM products
+WHERE deleted = false
+ORDER BY name;
+
+-- name: UserHelpers :many
+SELECT id, name FROM users
+WHERE deleted = false and role = 'staff'
+ORDER BY name;
+
+-- name: ResellerStockFormHelpers :many
+SELECT p.id, p.name, rs.quantity, rs.low_stock_threshold
+FROM products p
+JOIN reseller_stock rs ON rs.product_id = p.id AND rs.reseller_id = sqlc.arg('reseller_id')
+WHERE p.deleted = false
+ORDER BY p.name;
+
+-- name: CreateAlert :exec
+INSERT INTO activities (title, description, type)
+VALUES (sqlc.arg('title'), sqlc.arg('description'), sqlc.arg('type'))
+RETURNING *;

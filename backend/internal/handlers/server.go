@@ -102,12 +102,6 @@ func (s *Server) setUpRoutes() {
 	adminGroup.DELETE("/products/:id", s.deleteProductHandler)
 	cacheGroup.GET("/products", s.listProductsHandler)
 
-	// authRoute.POST("/products/:id/add-stock", s.addProductStockHandler)
-	// authRoute.POST("/products/:id/remove-stock", s.removeProductStockHandler)
-	// cacheRoute.GET("/products/movements", s.listProductMovementsHandler)
-	// cacheRoute.GET("/stats", s.getStatsHandler)
-	// cacheRoute.GET("/dashboard", s.GetDashboardData)
-
 	// company routes
 	adminGroup.POST("/company/stock-purchase", s.createProductBatchHandler)
 	adminCacheGroup.GET("/company/stock-purchase", s.listProductBatchesHandler)
@@ -116,6 +110,8 @@ func (s *Server) setUpRoutes() {
 	adminCacheGroup.GET("/company/stock", s.listCompanyStockHandler)
 
 	// resellers routes
+	adminCacheGroup.GET("/admin/resellers", s.listResellersHandler)
+	adminCacheGroup.GET("/admin/resellers/:id", s.getResellerByIDHandler)
 	authGroup.POST("/resellers", s.createSaleHandler)
 	cacheGroup.GET("/resellers", s.listSalesHandler)
 	cacheGroup.GET("/resellers/stock", s.listResellerStockHandler)
@@ -136,9 +132,13 @@ func (s *Server) setUpRoutes() {
 	cacheGroup.GET("/stock-movements", s.listStockMovementsHandler)
 
 	// helper routes
+	cacheGroup.GET("/resellers/page-data/:page", s.getResellerPageStatsHandler)
+	adminCacheGroup.GET("/admin/page-data/:page", s.getAdminPageStatsHandler)
+	cacheGroup.GET("/resellers/form", s.userFormHelperHandler)
+	cacheGroup.GET("/resellers/stock/form", s.resellerStockFormHelperHandler)
 	cacheGroup.GET("/products/form", s.productFormHelperHandler)
 	cacheGroup.GET("/resellers/:id/account", s.getResellerAccountHandler)
-	adminCacheGroup.GET("/admin/stats", s.getAdminStatsHandler)
+	// adminCacheGroup.GET("/admin/stats", s.getAdminStatsHandler)
 
 	// reports routes
 

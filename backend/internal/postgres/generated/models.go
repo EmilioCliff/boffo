@@ -10,6 +10,14 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Activity struct {
+	ID          int64     `json:"id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Type        string    `json:"type"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
 type AdminStat struct {
 	ID                    int32          `json:"id"`
 	TotalCompanyStock     int64          `json:"total_company_stock"`

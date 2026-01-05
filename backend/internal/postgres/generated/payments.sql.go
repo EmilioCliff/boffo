@@ -51,7 +51,8 @@ func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (P
 }
 
 const listPayments = `-- name: ListPayments :many
-SELECT p.id, p.reseller_id, p.amount, p.method, p.reference, p.recorded_by, p.date_paid, p.created_at, u.name, u.phone_number FROM payments p
+SELECT p.id, p.reseller_id, p.amount, p.method, p.reference, p.recorded_by, p.date_paid, p.created_at, u.name, u.phone_number 
+FROM payments p
 JOIN users u ON u.id = p.reseller_id
 WHERE 
     (
@@ -59,27 +60,33 @@ WHERE
         OR p.reseller_id = $1
     )
     AND (
-        $2::text IS NULL
-        OR p.method = $2
+        COALESCE($2, '') = '' 
+        OR LOWER(u.name) LIKE $2
+        OR LOWER(p.reference) LIKE $2
     )
     AND (
         $3::text IS NULL
-        OR p.recorded_by = $3
+        OR p.method = $3
     )
     AND (
-        $4::date IS NULL
-        OR p.date_paid::date >= $4
+        $4::text IS NULL
+        OR p.recorded_by = $4
     )
     AND (
         $5::date IS NULL
-        OR p.date_paid::date <= $5
+        OR p.date_paid::date >= $5
+    )
+    AND (
+        $6::date IS NULL
+        OR p.date_paid::date <= $6
     )
 ORDER BY p.date_paid DESC
-LIMIT $7 OFFSET $6
+LIMIT $8 OFFSET $7
 `
 
 type ListPaymentsParams struct {
 	ResellerID pgtype.Int8 `json:"reseller_id"`
+	Search     interface{} `json:"search"`
 	Method     pgtype.Text `json:"method"`
 	RecordedBy pgtype.Text `json:"recorded_by"`
 	DateFrom   pgtype.Date `json:"date_from"`
@@ -104,6 +111,7 @@ type ListPaymentsRow struct {
 func (q *Queries) ListPayments(ctx context.Context, arg ListPaymentsParams) ([]ListPaymentsRow, error) {
 	rows, err := q.db.Query(ctx, listPayments,
 		arg.ResellerID,
+		arg.Search,
 		arg.Method,
 		arg.RecordedBy,
 		arg.DateFrom,
@@ -143,31 +151,38 @@ func (q *Queries) ListPayments(ctx context.Context, arg ListPaymentsParams) ([]L
 const listPaymentsCount = `-- name: ListPaymentsCount :one
 SELECT COUNT(*) AS total_payments
 FROM payments p
+JOIN users u ON u.id = p.reseller_id
 WHERE 
     (
         $1::bigint IS NULL
         OR p.reseller_id = $1
     )
     AND (
-        $2::text IS NULL
-        OR p.method = $2
+        COALESCE($2, '') = '' 
+        OR LOWER(u.name) LIKE $2
+        OR LOWER(p.reference) LIKE $2
     )
     AND (
         $3::text IS NULL
-        OR p.recorded_by = $3
+        OR p.method = $3
     )
     AND (
-        $4::date IS NULL
-        OR p.date_paid::date >= $4
+        $4::text IS NULL
+        OR p.recorded_by = $4
     )
     AND (
         $5::date IS NULL
-        OR p.date_paid::date <= $5
+        OR p.date_paid::date >= $5
+    )
+    AND (
+        $6::date IS NULL
+        OR p.date_paid::date <= $6
     )
 `
 
 type ListPaymentsCountParams struct {
 	ResellerID pgtype.Int8 `json:"reseller_id"`
+	Search     interface{} `json:"search"`
 	Method     pgtype.Text `json:"method"`
 	RecordedBy pgtype.Text `json:"recorded_by"`
 	DateFrom   pgtype.Date `json:"date_from"`
@@ -177,6 +192,7 @@ type ListPaymentsCountParams struct {
 func (q *Queries) ListPaymentsCount(ctx context.Context, arg ListPaymentsCountParams) (int64, error) {
 	row := q.db.QueryRow(ctx, listPaymentsCount,
 		arg.ResellerID,
+		arg.Search,
 		arg.Method,
 		arg.RecordedBy,
 		arg.DateFrom,

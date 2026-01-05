@@ -155,7 +155,7 @@ func (pr *ProductRepository) List(ctx context.Context, filter *repository.Produc
 	return repoProducts, pkg.CalculatePagination(uint32(totalCount), filter.Pagination.PageSize, filter.Pagination.Page), nil
 }
 
-func (pr *ProductRepository) ProductFormHeper(ctx context.Context) (any, error) {
+func (pr *ProductRepository) ProductFormHelper(ctx context.Context) (any, error) {
 	products, err := pr.queries.ProductHelpers(ctx)
 	if err != nil {
 		return nil, pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get product helpers: %s", err.Error())

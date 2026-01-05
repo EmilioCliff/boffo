@@ -15,6 +15,11 @@ WHERE
         OR sm.owner_type = sqlc.narg('owner_type')
     )
     AND (
+        COALESCE(sqlc.narg('search'), '') = '' 
+        OR LOWER(u.name) LIKE sqlc.narg('search')
+        OR LOWER(p.name) LIKE sqlc.narg('search')
+    )
+    AND (
         sqlc.narg('owner_id')::bigint IS NULL
         OR sm.owner_id = sqlc.narg('owner_id')
     )
@@ -36,10 +41,17 @@ LIMIT sqlc.arg('limit') OFFSET sqlc.arg('offset');
 -- name: ListStockMovementsCount :one
 SELECT COUNT(*) AS total_movements
 FROM stock_movements sm
+LEFT JOIN products p ON p.id = sm.product_id
+LEFT JOIN users u ON u.id = sm.owner_id AND sm.owner_type = 'RESELLER'
 WHERE 
     (
         sqlc.narg('owner_type')::text IS NULL
         OR sm.owner_type = sqlc.narg('owner_type')
+    )
+     AND (
+        COALESCE(sqlc.narg('search'), '') = '' 
+        OR LOWER(u.name) LIKE sqlc.narg('search')
+        OR LOWER(p.name) LIKE sqlc.narg('search')
     )
     AND (
         sqlc.narg('owner_id')::bigint IS NULL

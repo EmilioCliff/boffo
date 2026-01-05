@@ -25,6 +25,7 @@ type ProductShort struct {
 	Price             float64 `json:"price"`
 	Unit              string  `json:"unit"`
 	LowStockThreshold int32   `json:"low_stock_threshold"`
+	Description       string  `json:"description,omitempty"`
 }
 
 type ProductUpdate struct {
@@ -49,5 +50,5 @@ type ProductRepository interface {
 	Delete(ctx context.Context, id int64) error
 	List(ctx context.Context, filter *ProductFilter) ([]*Product, *pkg.Pagination, error)
 
-	ProductFormHeper(ctx context.Context) (any, error)
+	ProductFormHelper(ctx context.Context) (any, error)
 }

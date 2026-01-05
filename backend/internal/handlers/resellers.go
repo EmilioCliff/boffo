@@ -47,6 +47,9 @@ func (s *Server) createSaleHandler(ctx *gin.Context) {
 		Quantity:     int32(req.Quantity),
 		SellingPrice: req.SellingPrice,
 		DateSold:     dateSold,
+		User: &repository.UserShort{
+			Name: payload.Name,
+		},
 	})
 	if err != nil {
 		ctx.JSON(pkg.ErrorToStatusCode(err), errorResponse(err))
@@ -54,6 +57,22 @@ func (s *Server) createSaleHandler(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, gin.H{"data": resellerSale})
+}
+
+func (s *Server) getResellerByIDHandler(ctx *gin.Context) {
+	id, err := pkg.StringToUint32(ctx.Param("id"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(pkg.Errorf(pkg.INVALID_ERROR, "invalid reseller ID: %s", err.Error())))
+		return
+	}
+
+	reseller, err := s.repo.ResellerRepository.GetResellerByID(ctx, id)
+	if err != nil {
+		ctx.JSON(pkg.ErrorToStatusCode(err), errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": reseller})
 }
 
 func (s *Server) listSalesHandler(ctx *gin.Context) {
@@ -220,4 +239,42 @@ func (s *Server) updateResellerStockThrosholdHandler(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"data": updatedStock})
+}
+
+func (s *Server) listResellersHandler(ctx *gin.Context) {
+	pageNoStr := ctx.DefaultQuery("page", "1")
+	pageNo, err := pkg.StringToInt64(pageNoStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(pkg.Errorf(pkg.INVALID_ERROR, err.Error())))
+
+		return
+	}
+
+	pageSizeStr := ctx.DefaultQuery("limit", "10")
+	pageSize, err := pkg.StringToInt64(pageSizeStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(pkg.Errorf(pkg.INVALID_ERROR, err.Error())))
+
+		return
+	}
+
+	filter := &repository.ResellerFilter{
+		Pagination: &pkg.Pagination{
+			Page:     uint32(pageNo),
+			PageSize: uint32(pageSize),
+		},
+		Search: nil,
+	}
+
+	if search := ctx.Query("search"); search != "" {
+		filter.Search = &search
+	}
+
+	resellers, pagination, err := s.repo.ResellerRepository.ListResellersWithAccount(ctx, filter)
+	if err != nil {
+		ctx.JSON(pkg.ErrorToStatusCode(err), errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"data": resellers, "pagination": pagination})
 }

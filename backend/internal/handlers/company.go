@@ -68,10 +68,16 @@ func (s *Server) listProductBatchesHandler(ctx *gin.Context) {
 		},
 		Search:    nil,
 		ProductID: nil,
+		InStock:   nil,
 	}
 
 	if search := ctx.Query("search"); search != "" {
 		filter.Search = &search
+	}
+
+	if inStockStr := ctx.Query("in_stock"); inStockStr != "" {
+		inStock := pkg.StringToBool(inStockStr)
+		filter.InStock = &inStock
 	}
 
 	if productId := ctx.Query("product_id"); productId != "" {

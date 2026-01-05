@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/EmilioCliff/boffo/internal/postgres/generated"
 	"github.com/EmilioCliff/boffo/internal/repository"
@@ -83,6 +85,20 @@ func (pr *PaymentRepository) CreatePayment(ctx context.Context, payment *reposit
 			return pkg.Errorf(pkg.INTERNAL_ERROR, "failed to update admin stats: %s", err.Error())
 		}
 
+		resellerName, err := q.GetResellerNameByID(ctx, int64(payment.ResellerID))
+		if err != nil {
+			return pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get reseller: %s", err.Error())
+		}
+
+		// create alert
+		if err = q.CreateAlert(ctx, generated.CreateAlertParams{
+			Type:        "PAYMENT_RECEIVED",
+			Title:       "Payment Received",
+			Description: fmt.Sprintf("KES %.0f from %s", payment.Amount, resellerName),
+		}); err != nil {
+			return pkg.Errorf(pkg.INTERNAL_ERROR, "failed to create alert: %s", err.Error())
+		}
+
 		return nil
 	})
 	if err != nil {
@@ -96,6 +112,7 @@ func (pr *PaymentRepository) ListPayments(ctx context.Context, filter *repositor
 	listParams := generated.ListPaymentsParams{
 		Limit:      int32(filter.Pagination.PageSize),
 		Offset:     pkg.Offset(filter.Pagination.Page, filter.Pagination.PageSize),
+		Search:     pgtype.Text{Valid: false},
 		ResellerID: pgtype.Int8{Valid: false},
 		Method:     pgtype.Text{Valid: false},
 		RecordedBy: pgtype.Text{Valid: false},
@@ -104,11 +121,18 @@ func (pr *PaymentRepository) ListPayments(ctx context.Context, filter *repositor
 	}
 
 	countParams := generated.ListPaymentsCountParams{
+		Search:     pgtype.Text{Valid: false},
 		ResellerID: pgtype.Int8{Valid: false},
 		Method:     pgtype.Text{Valid: false},
 		RecordedBy: pgtype.Text{Valid: false},
 		DateFrom:   pgtype.Date{Valid: false},
 		DateTo:     pgtype.Date{Valid: false},
+	}
+
+	if filter.Search != nil {
+		s := strings.ToLower(*filter.Search)
+		listParams.Search = pgtype.Text{String: "%" + s + "%", Valid: true}
+		countParams.Search = pgtype.Text{String: "%" + s + "%", Valid: true}
 	}
 
 	if filter.ResellerID != nil {

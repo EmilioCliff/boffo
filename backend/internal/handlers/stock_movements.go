@@ -31,6 +31,7 @@ func (s *Server) listStockMovementsHandler(ctx *gin.Context) {
 			Page:     uint32(pageNo),
 			PageSize: uint32(pageSize),
 		},
+		Search:       nil,
 		ProductID:    nil,
 		OwnerType:    nil,
 		OwnerID:      nil,
@@ -62,6 +63,10 @@ func (s *Server) listStockMovementsHandler(ctx *gin.Context) {
 			}
 			filter.OwnerID = &ownerID
 		}
+	}
+
+	if search := ctx.Query("search"); search != "" {
+		filter.Search = &search
 	}
 
 	if productIDStr := ctx.Query("product_id"); productIDStr != "" {

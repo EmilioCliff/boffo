@@ -27,6 +27,7 @@ type StockMovement struct {
 
 type StockMovementFilter struct {
 	Pagination   *pkg.Pagination
+	Search       *string
 	ProductID    *uint32
 	OwnerType    *string
 	OwnerID      *uint32

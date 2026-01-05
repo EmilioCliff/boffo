@@ -324,13 +324,3 @@ func (s *Server) listProductsHandler(ctx *gin.Context) {
 
 // 	ctx.JSON(http.StatusOK, gin.H{"data": stats})
 // }
-
-func (s *Server) productFormHelperHandler(ctx *gin.Context) {
-	helpers, err := s.repo.ProductsRepository.ProductFormHeper(ctx)
-	if err != nil {
-		ctx.JSON(pkg.ErrorToStatusCode(err), errorResponse(err))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{"data": helpers})
-}
