@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -46,6 +47,30 @@ func StringToTime(s string) (time.Time, error) {
 	return t, nil
 }
 
+func StrToTime(s string) (time.Time, error) {
+	if s == "" {
+		return time.Now(), nil
+	}
+
+	layouts := []string{
+		"2006-01-02",
+		"2006-01-02T15:04:05Z",
+		"2006-01-02T15:04:05Z07:00",
+	}
+
+	var parsed time.Time
+	var err error
+
+	for _, layout := range layouts {
+		parsed, err = time.Parse(layout, s)
+		if err == nil {
+			return parsed, nil
+		}
+	}
+
+	return time.Time{}, fmt.Errorf("invalid date format: %s", s)
+}
+
 func StringToBool(s string) bool {
 	if s == "" {
 		return false
@@ -68,4 +93,14 @@ func StringToInt64(s string) (int64, error) {
 	}
 
 	return int64(i), nil
+}
+
+func StringToUint32(s string) (uint32, error) {
+	i, err := strconv.ParseUint(s, 10, 32)
+	if err != nil {
+		log.Println("not uint32")
+		return 0, err
+	}
+
+	return uint32(i), nil
 }

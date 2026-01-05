@@ -31,7 +31,7 @@ migrateUp:
 	migrate -source ${MIGRATIONS_PATH} -database ${DATABASE_URL} -verbose up
 
 migrateDown:
-	migrate -source ${MIGRATIONS_PATH} -database ${DATABASE_URL} -verbose down
+	migrate -source ${MIGRATIONS_PATH} -database ${DATABASE_URL} -verbose down ${VERSION}
 
 createDb:
 	docker run --name boffo-db -e POSTGRES_PASSWORD=secret -e POSTGRES_USER=backend -e POSTGRES_DB=boffo -p 5432:5432 -d 38d5c9d52203

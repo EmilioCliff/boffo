@@ -22,6 +22,15 @@ type User struct {
 	CreatedAt   time.Time `json:"created_at"`
 }
 
+type UserShort struct {
+	ID          uint32 `json:"id"`
+	Name        string `json:"name"`
+	PhoneNumber string `json:"phone_number"`
+
+	// optional fields
+	Email string `json:"email,omitempty"`
+}
+
 type UserUpdate struct {
 	Name         *string `json:"name"`
 	Email        *string `json:"email"`
@@ -46,4 +55,5 @@ type UserRepository interface {
 	List(ctx context.Context, filter *UserFilter) ([]*User, *pkg.Pagination, error)
 
 	GetUserInternalByEmail(ctx context.Context, email string) (*User, string, string, error)
+	UserFormHelper(ctx context.Context) (any, error)
 }

@@ -45,16 +45,12 @@ func (ur *UserRepository) Create(ctx context.Context, user *repository.User, def
 		user.Deleted = pgUser.Deleted
 		user.CreatedAt = pgUser.CreatedAt
 
-		stats, err := q.GetStats(ctx)
-		if err != nil {
-			return pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get stats: %s", err.Error())
-		}
-
-		_, err = q.UpdateStats(ctx, generated.UpdateStatsParams{
-			TotalUsers: pgtype.Int8{Valid: true, Int64: stats.TotalUsers + 1},
-		})
-		if err != nil {
-			return pkg.Errorf(pkg.INTERNAL_ERROR, "failed to update stats: %s", err.Error())
+		// create reseller account if role is reseller
+		if user.Role == "staff" {
+			_, err = q.CreateResellerAccount(ctx, int64(user.ID))
+			if err != nil {
+				return pkg.Errorf(pkg.INTERNAL_ERROR, "failed to create reseller account: %s", err.Error())
+			}
 		}
 
 		return nil
@@ -150,18 +146,6 @@ func (ur *UserRepository) Delete(ctx context.Context, id int64) error {
 			return pkg.Errorf(pkg.INTERNAL_ERROR, "failed to delete user: %s", err.Error())
 		}
 
-		stats, err := q.GetStats(ctx)
-		if err != nil {
-			return pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get stats: %s", err.Error())
-		}
-
-		_, err = q.UpdateStats(ctx, generated.UpdateStatsParams{
-			TotalUsers: pgtype.Int8{Valid: true, Int64: stats.TotalUsers - 1},
-		})
-		if err != nil {
-			return pkg.Errorf(pkg.INTERNAL_ERROR, "failed to update stats: %s", err.Error())
-		}
-
 		return nil
 	})
 
@@ -208,6 +192,15 @@ func (ur *UserRepository) List(ctx context.Context, filter *repository.UserFilte
 	}
 
 	return users, pkg.CalculatePagination(uint32(totalCount), filter.Pagination.PageSize, filter.Pagination.Page), nil
+}
+
+func (ur *UserRepository) UserFormHelper(ctx context.Context) (any, error) {
+	users, err := ur.queries.UserHelpers(ctx)
+	if err != nil {
+		return nil, pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get user helpers: %s", err.Error())
+	}
+
+	return users, nil
 }
 
 func pgUserToRepoUser(pgUser generated.User) *repository.User {

@@ -28,8 +28,8 @@ export function DateRangePicker({
 
 	React.useEffect(() => {
 		setTimeRange({
-			from: format(date?.from ?? '01/01/2025', 'P'),
-			to: format(date?.to ?? new Date(), 'P'),
+			from: format(date?.from ?? '2025-01-01', 'yyyy-MM-dd'),
+			to: format(date?.to ?? new Date(), 'yyyy-MM-dd'),
 		});
 	}, [date]);
 
@@ -62,7 +62,6 @@ export function DateRangePicker({
 				</PopoverTrigger>
 				<PopoverContent className="w-auto p-0" align="start">
 					<Calendar
-						initialFocus
 						mode="range"
 						defaultMonth={date?.from}
 						selected={date}

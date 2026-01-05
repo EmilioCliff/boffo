@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,30 +19,44 @@ import {
 	FormMessage,
 } from '@/components/ui/form';
 import { Eye, EyeOff, Lock, Mail, Package } from 'lucide-react';
-import { toast } from 'react-toastify';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { LoginForm } from '@/lib/types';
 import { LoginFormSchema } from '@/lib/schemas';
 import { useMutation } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Login() {
 	const [showPassword, setShowPassword] = useState(false);
 	const { login } = useAuth();
 	const navigate = useNavigate();
+	const { toast } = useToast();
 
 	const loginForm = useForm<LoginForm>({
 		resolver: zodResolver(LoginFormSchema),
+		defaultValues: {
+			email: '',
+			password: '',
+		},
 	});
 
 	const loginMutation = useMutation({
 		mutationFn: login,
 		onSuccess: async (data) => {
-			toast.success(`Welcome back ${data.data.user.name}!`);
-			navigate('/');
+			toast({
+				variant: 'success',
+				title: `Welcome back ${data.data.user.name}!`,
+			});
+			navigate(data.data.user.role === 'admin' ? '/admin' : '/reseller');
 		},
 		onError: (error: any) => {
-			toast.error(error.message);
+			toast({
+				variant: 'destructive',
+				title: 'Login Failed',
+				description:
+					error.message ||
+					'An error occurred during login. Please try again.',
+			});
 		},
 	});
 

@@ -1,6 +1,6 @@
 -- name: CreateProduct :one
-INSERT INTO products (name, description, price, stock, category, unit, low_stock_threshold)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO products (name, description, price, category, unit, low_stock_threshold)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
 
 -- name: GetProductByID :one
@@ -17,27 +17,10 @@ SET name = coalesce(sqlc.narg('name'), name),
 WHERE id = sqlc.arg('id')
 RETURNING *;
 
--- name: AddStock :one
-UPDATE products
-SET stock = stock + sqlc.arg('quantity')
-WHERE id = sqlc.arg('id')
-RETURNING *;
-
--- name: RemoveStock :one
-UPDATE products
-SET stock = stock - sqlc.arg('quantity')
-WHERE id = sqlc.arg('id')
-RETURNING *;
-
 -- name: DeleteProduct :exec
 UPDATE products
 SET deleted = true
 WHERE id = $1;
-
--- name: ProductHelpers :many
-SELECT id, name FROM products
-WHERE deleted = false
-ORDER BY name;
 
 -- name: ListProducts :many
 SELECT * FROM products
@@ -47,16 +30,6 @@ WHERE
         OR LOWER(name) LIKE sqlc.narg('search')
         OR LOWER(description) LIKE sqlc.narg('search')
         OR LOWER(category) LIKE sqlc.narg('search')
-    )
-    AND (
-        sqlc.narg('in_stock')::boolean IS NULL
-        OR (
-            CASE 
-                WHEN sqlc.narg('in_stock')::boolean = TRUE THEN stock > low_stock_threshold
-                WHEN sqlc.narg('in_stock')::boolean = FALSE THEN stock <= low_stock_threshold
-                ELSE TRUE
-            END
-        )
     )
     AND deleted = false
 ORDER BY created_at DESC
@@ -71,15 +44,5 @@ WHERE
         OR LOWER(name) LIKE sqlc.narg('search')
         OR LOWER(description) LIKE sqlc.narg('search')
         OR LOWER(category) LIKE sqlc.narg('search')
-    )
-    AND (
-        sqlc.narg('in_stock')::boolean IS NULL
-        OR (
-            CASE 
-                WHEN sqlc.narg('in_stock')::boolean = TRUE THEN stock > low_stock_threshold
-                WHEN sqlc.narg('in_stock')::boolean = FALSE THEN stock <= low_stock_threshold
-                ELSE TRUE
-            END
-        )
     )
     AND deleted = false;

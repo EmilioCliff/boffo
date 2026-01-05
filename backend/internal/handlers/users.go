@@ -30,17 +30,17 @@ func (s *Server) createUserHandler(ctx *gin.Context) {
 	}
 
 	// get user from context
-	authPayload, ok := ctx.Get(authorizationPayloadKey)
-	if !ok {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get auth payload")))
-		return
-	}
-	payload := authPayload.(*pkg.Payload)
+	// authPayload, ok := ctx.Get(authorizationPayloadKey)
+	// if !ok {
+	// 	ctx.JSON(http.StatusInternalServerError, errorResponse(pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get auth payload")))
+	// 	return
+	// }
+	// payload := authPayload.(*pkg.Payload)
 
-	if payload.Role != "admin" {
-		ctx.JSON(http.StatusForbidden, errorResponse(pkg.Errorf(pkg.FORBIDDEN_ERROR, "only admin users can create other users")))
-		return
-	}
+	// if payload.Role != "admin" {
+	// 	ctx.JSON(http.StatusForbidden, errorResponse(pkg.Errorf(pkg.FORBIDDEN_ERROR, "only admin users can create other users")))
+	// 	return
+	// }
 
 	hashPassword, err := pkg.GenerateHashPassword(s.config.DEFAULT_USER_PASSWORD, s.config.PASSWORD_COST)
 	if err != nil {
@@ -63,6 +63,18 @@ func (s *Server) getUserHandler(ctx *gin.Context) {
 	id, err := pkg.StringToInt64(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(pkg.Errorf(pkg.INVALID_ERROR, "invalid user ID: %s", err.Error())))
+		return
+	}
+
+	authPayload, ok := ctx.Get(authorizationPayloadKey)
+	if !ok {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get auth payload")))
+		return
+	}
+	payload := authPayload.(*pkg.Payload)
+
+	if payload.UserID != uint32(id) && payload.Role != repository.ADMIN_ROLE {
+		ctx.JSON(http.StatusForbidden, errorResponse(pkg.Errorf(pkg.FORBIDDEN_ERROR, "users can only access their own profile")))
 		return
 	}
 
@@ -188,17 +200,17 @@ func (s *Server) deleteUserHandler(ctx *gin.Context) {
 	}
 
 	// get user from context
-	authPayload, ok := ctx.Get(authorizationPayloadKey)
-	if !ok {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get auth payload")))
-		return
-	}
-	payload := authPayload.(*pkg.Payload)
+	// authPayload, ok := ctx.Get(authorizationPayloadKey)
+	// if !ok {
+	// 	ctx.JSON(http.StatusInternalServerError, errorResponse(pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get auth payload")))
+	// 	return
+	// }
+	// payload := authPayload.(*pkg.Payload)
 
-	if payload.Role != "admin" {
-		ctx.JSON(http.StatusForbidden, errorResponse(pkg.Errorf(pkg.FORBIDDEN_ERROR, "only admin users can delete other users")))
-		return
-	}
+	// if payload.Role != "admin" {
+	// 	ctx.JSON(http.StatusForbidden, errorResponse(pkg.Errorf(pkg.FORBIDDEN_ERROR, "only admin users can delete other users")))
+	// 	return
+	// }
 
 	err = s.repo.UserRepository.Delete(ctx, id)
 	if err != nil {
