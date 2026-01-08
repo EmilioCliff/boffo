@@ -442,7 +442,9 @@ export default function ResellerRequestsPage() {
 							<p className="text-sm text-muted-foreground">
 								Rejected
 							</p>
-							<p className="text-2xl font-bold">1</p>
+							<p className="text-2xl font-bold">
+								{stats?.rejected_requests.toLocaleString()}
+							</p>
 						</div>
 					</CardContent>
 				</Card>
