@@ -99,6 +99,32 @@ func (q *Queries) GetResellerGoodsRequestsPageStats(ctx context.Context, reselle
 	return goods_requests_stats, err
 }
 
+const getResellerPaymentsPageStats = `-- name: GetResellerPaymentsPageStats :one
+WITH payment_stats AS (
+  SELECT 
+    COUNT(*)::bigint AS total_payments,
+    COALESCE(SUM(amount), 0)::numeric AS total_amount_received,
+    COALESCE(SUM(amount) FILTER (WHERE method = 'MPESA'), 0)::numeric AS mpesa_total,
+    COALESCE(SUM(amount) FILTER (WHERE method = 'CASH'), 0)::numeric AS cash_total
+  FROM payments
+  WHERE reseller_id = $1
+)
+SELECT 
+  json_build_object(
+    'total_payments', (SELECT total_payments FROM payment_stats),
+    'total_received', (SELECT total_amount_received FROM payment_stats),
+    'mpesa_total', (SELECT mpesa_total FROM payment_stats),
+    'cash_total', (SELECT cash_total FROM payment_stats)
+  ) AS payments_stats
+`
+
+func (q *Queries) GetResellerPaymentsPageStats(ctx context.Context, resellerID int64) ([]byte, error) {
+	row := q.db.QueryRow(ctx, getResellerPaymentsPageStats, resellerID)
+	var payments_stats []byte
+	err := row.Scan(&payments_stats)
+	return payments_stats, err
+}
+
 const getResellerSalesPageStats = `-- name: GetResellerSalesPageStats :one
 SELECT 
   json_build_object(

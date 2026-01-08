@@ -204,18 +204,18 @@ func (s *Server) listResellerStockHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": resellerStocks, "pagination": pagination})
 }
 
-type UpdateResellerStockThrosholdRequest struct {
-	Throshold uint32 `json:"throshold" binding:"required,min=0"`
+type UpdateResellerStockThresholdRequest struct {
+	Threshold uint32 `json:"threshold" binding:"required,min=0"`
 }
 
-func (s *Server) updateResellerStockThrosholdHandler(ctx *gin.Context) {
+func (s *Server) updateResellerStockThresholdHandler(ctx *gin.Context) {
 	id, err := pkg.StringToUint32(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(pkg.Errorf(pkg.INVALID_ERROR, "invalid reseller ID: %s", err.Error())))
 		return
 	}
 
-	var req UpdateResellerStockThrosholdRequest
+	var req UpdateResellerStockThresholdRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(pkg.Errorf(pkg.INVALID_ERROR, err.Error())))
 		return
@@ -231,7 +231,7 @@ func (s *Server) updateResellerStockThrosholdHandler(ctx *gin.Context) {
 	updatedStock, err := s.repo.ResellerRepository.UpdateResellerStockThreshold(ctx, &repository.ResellerStockUpdate{
 		ResellerID:        payload.UserID,
 		ProductID:         id,
-		LowStockThreshold: req.Throshold,
+		LowStockThreshold: req.Threshold,
 	})
 	if err != nil {
 		ctx.JSON(pkg.ErrorToStatusCode(err), errorResponse(err))

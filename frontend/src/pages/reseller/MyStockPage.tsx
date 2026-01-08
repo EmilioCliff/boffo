@@ -1,10 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Search, Package, AlertTriangle } from 'lucide-react';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import {
+	keepPreviousData,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from '@tanstack/react-query';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import GetResellerStock from '@/services/getResellerStock';
 import Spinner from '@/components/Spinner';
 import ErrorCard from '@/components/ErrorCard';
@@ -15,15 +22,28 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import PaginationNew from '@/components/PaginationNew';
 import GetResellerPageData from '@/services/reseller/getPageDataHelper';
+import UpdateProductThreshold from '@/services/reseller/updateProductThreshold';
 
 export default function MyStockPage() {
 	const { decoded } = useAuth();
+	const { toast } = useToast();
+	const queryClient = useQueryClient();
 	const [status, setStatus] = useState('all');
 	const [searchQuery, setSearchQuery] = useState('');
 	const [pageIndex, setPageIndex] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
+	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const [selectedProduct, setSelectedProduct] = useState<any>(null);
+	const [thresholdInput, setThresholdInput] = useState('');
 	const debouncedInput = useDebounce({ value: searchQuery, delay: 500 });
 
 	const { isLoading, error, data } = useQuery({
@@ -47,9 +67,59 @@ export default function MyStockPage() {
 		placeholderData: keepPreviousData,
 	});
 
+	const updateThresholdMutation = useMutation({
+		mutationFn: (data: { productId: number; threshold: number }) =>
+			UpdateProductThreshold(data.productId, data.threshold),
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({
+				queryKey: ['stock'],
+			});
+			await queryClient.invalidateQueries({
+				queryKey: ['reseller-page-data'],
+			});
+			toast({
+				variant: 'success',
+				title: 'Success',
+				description: 'Stock threshold updated successfully.',
+			});
+			setIsDialogOpen(false);
+			setSelectedProduct(null);
+			setThresholdInput('');
+		},
+		onError: (error: any) => {
+			toast({
+				variant: 'destructive',
+				title: 'Error',
+				description: error.message,
+			});
+		},
+	});
+
 	useEffect(() => {
 		setPageIndex(1);
 	}, [pageSize, status, debouncedInput]);
+
+	const openThresholdDialog = (product: any) => {
+		setSelectedProduct(product);
+		setThresholdInput(product.low_stock_threshold?.toString() || '');
+		setIsDialogOpen(true);
+	};
+
+	const handleUpdateThreshold = () => {
+		if (!thresholdInput || isNaN(Number(thresholdInput))) {
+			toast({
+				variant: 'destructive',
+				title: 'Error',
+				description: 'Please enter a valid threshold value.',
+			});
+			return;
+		}
+
+		updateThresholdMutation.mutate({
+			productId: selectedProduct.product_id,
+			threshold: Number(thresholdInput),
+		});
+	};
 
 	const getStatusBadge = (quantity: number, lowStockThreshold: number) => {
 		switch (
@@ -183,6 +253,7 @@ export default function MyStockPage() {
 								<th className="text-right">Current Stock</th>
 								<th className="text-right">Threshold</th>
 								<th>Status</th>
+								<th>Action</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -215,12 +286,24 @@ export default function MyStockPage() {
 													10,
 											)}
 										</td>
+										<td>
+											<Button
+												variant="outline"
+												size="sm"
+												className="h-7 text-xs"
+												onClick={() =>
+													openThresholdDialog(product)
+												}
+											>
+												Edit
+											</Button>
+										</td>
 									</tr>
 								))
 							) : (
 								<tr>
 									<td
-										colSpan={6}
+										colSpan={7}
 										className="text-center py-8"
 									>
 										<p className="text-muted-foreground">
@@ -249,6 +332,61 @@ export default function MyStockPage() {
 					onPageSizeChange={(size) => setPageSize(size)}
 				/>
 			)}
+
+			{/* Update Threshold Dialog */}
+			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+				<DialogContent aria-describedby={undefined}>
+					<DialogHeader>
+						<DialogTitle>Update Stock Threshold</DialogTitle>
+					</DialogHeader>
+					<div className="space-y-4 py-4">
+						<div>
+							<p className="text-sm font-medium">
+								{selectedProduct?.product?.name}
+							</p>
+							<p className="text-xs text-muted-foreground">
+								Current Threshold:{' '}
+								{selectedProduct?.low_stock_threshold}
+							</p>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="threshold">New Threshold</Label>
+							<Input
+								id="threshold"
+								type="number"
+								min="0"
+								placeholder="Enter threshold value"
+								value={thresholdInput}
+								onChange={(e) =>
+									setThresholdInput(e.target.value)
+								}
+							/>
+						</div>
+						<div className="flex gap-2 pt-4">
+							<Button
+								variant="outline"
+								onClick={() => {
+									setIsDialogOpen(false);
+									setSelectedProduct(null);
+									setThresholdInput('');
+								}}
+								className="flex-1"
+							>
+								Cancel
+							</Button>
+							<Button
+								onClick={handleUpdateThreshold}
+								disabled={updateThresholdMutation.isPending}
+								className="flex-1"
+							>
+								{updateThresholdMutation.isPending
+									? 'Updating...'
+									: 'Update'}
+							</Button>
+						</div>
+					</div>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

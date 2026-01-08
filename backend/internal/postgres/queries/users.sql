@@ -22,7 +22,8 @@ RETURNING *;
 
 -- name: DeleteUser :exec
 UPDATE users
-SET deleted = true
+SET deleted = true,
+     email = email || '.deleted.' || EXTRACT(EPOCH FROM NOW())::bigint
 WHERE id = $1;
 
 -- name: ListUsers :many

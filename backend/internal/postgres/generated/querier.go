@@ -108,6 +108,7 @@ type Querier interface {
 	// LEFT JOIN sales_data sd ON ds.day = sd.day
 	// ORDER BY ds.day;
 	GetResellerNameByID(ctx context.Context, resellerID int64) (string, error)
+	GetResellerPaymentsPageStats(ctx context.Context, resellerID int64) ([]byte, error)
 	GetResellerSalesPageStats(ctx context.Context, resellerID int64) ([]byte, error)
 	GetResellerStockPageStats(ctx context.Context, resellerID int64) ([]byte, error)
 	GetResellerWithAccountByID(ctx context.Context, resellerID int64) (GetResellerWithAccountByIDRow, error)

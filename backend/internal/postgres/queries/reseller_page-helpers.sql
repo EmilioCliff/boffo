@@ -105,3 +105,21 @@ SELECT
   ) AS goods_requests_stats
 FROM goods_requests
 WHERE reseller_id = sqlc.arg('reseller_id') AND cancelled = false;
+
+-- name: GetResellerPaymentsPageStats :one
+WITH payment_stats AS (
+  SELECT 
+    COUNT(*)::bigint AS total_payments,
+    COALESCE(SUM(amount), 0)::numeric AS total_amount_received,
+    COALESCE(SUM(amount) FILTER (WHERE method = 'MPESA'), 0)::numeric AS mpesa_total,
+    COALESCE(SUM(amount) FILTER (WHERE method = 'CASH'), 0)::numeric AS cash_total
+  FROM payments
+  WHERE reseller_id = sqlc.arg('reseller_id')
+)
+SELECT 
+  json_build_object(
+    'total_payments', (SELECT total_payments FROM payment_stats),
+    'total_received', (SELECT total_amount_received FROM payment_stats),
+    'mpesa_total', (SELECT mpesa_total FROM payment_stats),
+    'cash_total', (SELECT cash_total FROM payment_stats)
+  ) AS payments_stats;

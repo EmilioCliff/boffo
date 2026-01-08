@@ -44,7 +44,7 @@ export default function ResellerDashboard() {
 			return `Yesterday`;
 		}
 
-		return format(d, 'MMM dd, yyyy, h:mm a');
+		return format(d, 'MMM dd, yyyy');
 	}
 
 	const stats = statsQuery.data?.data.dashboard;

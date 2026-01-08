@@ -115,7 +115,7 @@ func (s *Server) setUpRoutes() {
 	authGroup.POST("/resellers", s.createSaleHandler)
 	cacheGroup.GET("/resellers", s.listSalesHandler)
 	cacheGroup.GET("/resellers/stock", s.listResellerStockHandler)
-	authGroup.PUT("/resellers/stock-threshold/:id", s.updateResellerStockThrosholdHandler)
+	authGroup.PUT("/resellers/stock-threshold/:id", s.updateResellerStockThresholdHandler)
 
 	// good requests routes
 	authGroup.POST("/good-requests", s.createGoodRequestHandler)

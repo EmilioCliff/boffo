@@ -46,6 +46,7 @@ import { RequestedProductsList } from '@/components/ProductRequestedList';
 import { format } from 'date-fns';
 import { UpdateGoodsRequestForm } from '@/components/UpdateGoodsRequestForm';
 import GetResellerPageData from '@/services/reseller/getPageDataHelper';
+import CancelGoodRequest from '@/services/reseller/cancelGoodRequest';
 
 export default function ResellerRequestsPage() {
 	const { decoded } = useAuth();
@@ -159,7 +160,34 @@ export default function ResellerRequestsPage() {
 		});
 	};
 
-	const handleCancelRequest = () => {};
+	const cancelMutation = useMutation({
+		mutationFn: CancelGoodRequest,
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({
+				queryKey: ['goods_requested'],
+			});
+			refetch();
+			setSelectedRequest(null);
+			setActionType(null);
+			form.reset();
+			toast({
+				variant: 'success',
+				title: 'Request Added',
+				description: `Goods request has been successfully added.`,
+			});
+		},
+		onError: (error: any) => {
+			toast({
+				variant: 'destructive',
+				title: 'Error',
+				description: error.message,
+			});
+		},
+	});
+
+	const onDelete = (id: number) => {
+		cancelMutation.mutate(id);
+	};
 
 	if (isLoading) {
 		return <Spinner />;
@@ -205,6 +233,10 @@ export default function ResellerRequestsPage() {
 									<div className="grid gap-2">
 										<Label>Product</Label>
 										<Select
+											value={
+												selectedProduct?.id?.toString() ||
+												''
+											}
 											onValueChange={(value) => {
 												const product =
 													productsForm?.data?.find(
@@ -240,7 +272,7 @@ export default function ResellerRequestsPage() {
 											<Label>Quantity</Label>
 											<Input
 												type="number"
-												min={1}
+												// min={1}
 												value={quantity}
 												onChange={(e) =>
 													setQuantity(
@@ -267,7 +299,7 @@ export default function ResellerRequestsPage() {
 
 									<Button
 										type="button"
-										variant="secondary"
+										// variant="secondary"
 										disabled={
 											!selectedProduct || quantity <= 0
 										}
@@ -508,7 +540,7 @@ export default function ResellerRequestsPage() {
 														<Button
 															size="sm"
 															variant="outline"
-															className="h-7 text-xs text-destructive hover:text-destructive"
+															className="h-7 text-xs text-destructive hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
 															onClick={() => {
 																setSelectedRequest(
 																	request,
@@ -521,7 +553,11 @@ export default function ResellerRequestsPage() {
 															Cancel
 														</Button>
 													)}
-
+												{request.cancelled && (
+													<span className="text-sm text-muted-foreground italic">
+														Cancelled
+													</span>
+												)}
 												{/* View */}
 												<Button
 													size="sm"
@@ -583,7 +619,7 @@ export default function ResellerRequestsPage() {
 							<Button
 								variant="destructive"
 								className="w-full"
-								onClick={handleCancelRequest}
+								onClick={() => onDelete(selectedRequest.id)}
 							>
 								Cancel Request
 							</Button>
@@ -608,7 +644,7 @@ export default function ResellerRequestsPage() {
 							onSuccess={() => {
 								setActionType(null);
 								setSelectedRequest(null);
-								// refetchRequests();
+								refetch();
 							}}
 						/>
 					)}
@@ -681,156 +717,6 @@ export default function ResellerRequestsPage() {
 					)}
 				</DialogContent>
 			</Dialog>
-
-			{/* Action Dialog */}
-			{/* <Dialog
-					open={!!actionType}
-					onOpenChange={() => setActionType(null)}
-				>
-					<DialogContent className="sm:max-w-[450px]">
-						<DialogHeader>
-							<DialogTitle>
-								{actionType === 'approve'
-									? 'Approve Request'
-									: 'Reject Request'}
-							</DialogTitle>
-						</DialogHeader>
-						{selectedRequest && (
-							<div className="space-y-4 py-4">
-								<div className="grid grid-cols-2 gap-4 text-sm">
-									<div>
-										<span className="text-muted-foreground">
-											Request ID:
-										</span>
-										<p className="font-medium">
-											{`REQ-${new Date(
-												selectedRequest.created_at,
-											).getFullYear()}-${String(
-												selectedRequest.id,
-											).padStart(3, '0')}`}
-										</p>
-									</div>
-									<div>
-										<span className="text-muted-foreground">
-											Reseller:
-										</span>
-										<p className="font-medium">
-											{selectedRequest.user?.name}
-										</p>
-									</div>
-								</div>
-								{selectedRequest?.payload && (
-									<RequestedProductsList
-										products={selectedRequest.payload}
-									/>
-								)}
-								<div className="grid gap-2">
-									<Label htmlFor="comment">
-										Admin Comment
-									</Label>
-									<Textarea
-										id="comment"
-										placeholder={
-											actionType === 'approve'
-												? 'Add any notes for the reseller...'
-												: 'Explain the reason for rejection...'
-										}
-										value={adminComment}
-										onChange={(e) =>
-											setAdminComment(e.target.value)
-										}
-									/>
-								</div>
-								<Button
-									className="w-full"
-									variant={
-										actionType === 'reject'
-											? 'destructive'
-											: 'default'
-									}
-									onClick={handleAction}
-								>
-									{actionType === 'approve'
-										? 'Approve Request'
-										: 'Reject Request'}
-								</Button>
-							</div>
-						)}
-					</DialogContent>
-				</Dialog> */}
-
-			{/* View Dialog */}
-			{/* <Dialog
-					open={!!selectedRequest && !actionType}
-					onOpenChange={() => setSelectedRequest(null)}
-				>
-					<DialogContent className="sm:max-w-[450px]">
-						<DialogHeader>
-							<DialogTitle>Request Details</DialogTitle>
-						</DialogHeader>
-						{selectedRequest && (
-							<div className="space-y-4 py-4">
-								<div className="grid grid-cols-2 gap-4 text-sm">
-									<div>
-										<span className="text-muted-foreground">
-											Request ID:
-										</span>
-										<p className="font-medium">
-											{`REQ-${new Date(
-												selectedRequest.created_at,
-											).getFullYear()}-${String(
-												selectedRequest.id,
-											).padStart(3, '0')}`}
-										</p>
-									</div>
-									<div>
-										<span className="text-muted-foreground">
-											Status:
-										</span>
-										<p>
-											{getStatusBadge(
-												selectedRequest.status,
-											)}
-										</p>
-									</div>
-									<div>
-										<span className="text-muted-foreground">
-											Reseller:
-										</span>
-										<p className="font-medium">
-											{selectedRequest.user?.name}
-										</p>
-									</div>
-									<div>
-										<span className="text-muted-foreground">
-											Date:
-										</span>
-										<p className="font-medium">
-											{format(
-												selectedRequest.created_at,
-												'dd MMM yyyy',
-											)}
-										</p>
-									</div>
-
-									<div className="col-span-2">
-										<span className="text-muted-foreground">
-											Notes:
-										</span>
-										<p className="font-medium">
-											{selectedRequest.comment}
-										</p>
-									</div>
-								</div>
-								{selectedRequest?.payload && (
-									<RequestedProductsList
-										products={selectedRequest.payload}
-									/>
-								)}
-							</div>
-						)}
-					</DialogContent>
-				</Dialog> */}
 
 			{/* Pagination */}
 			{pagination && (

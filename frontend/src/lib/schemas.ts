@@ -38,7 +38,9 @@ export const UserFormSchema = z.object({
 	id: z.number().int().nonnegative().optional(),
 	name: z.string().min(1),
 	email: z.string(),
-	phone_number: z.string().min(10),
+	phone_number: z
+		.string()
+		.length(10, { message: 'Phone number must be 10 digits' }),
 	role: z.string(),
 });
 
@@ -59,6 +61,17 @@ export const GoodRequestSchema = z.object({
 		}),
 	),
 });
+
+export const ChangePasswordFormSchema = z
+	.object({
+		id: z.number().int().nonnegative(),
+		old_password: z.string().min(2),
+		new_password: z.string().min(2),
+		confirm_password: z.string().min(2),
+	})
+	.refine((data) => data.new_password === data.confirm_password, {
+		message: "New password and confirm password don't match",
+	});
 
 // export const ProductSchema = z.object({
 // 	id: z.number().int().nonnegative(),
