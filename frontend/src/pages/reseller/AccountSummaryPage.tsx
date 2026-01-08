@@ -13,14 +13,7 @@ import { Label } from '@/components/ui/label';
 import {
 	Search,
 	Package,
-	TrendingUp,
-	TrendingDown,
-	Activity,
-	ArrowUpRight,
-	ArrowDownRight,
 	DollarSign,
-	ShoppingCart,
-	Boxes,
 	AlertCircle,
 	ArrowDownCircle,
 	ArrowUpCircle,
@@ -35,7 +28,6 @@ import ErrorCard from '@/components/ErrorCard';
 import PaginationNew from '@/components/PaginationNew';
 import { useAuth } from '@/contexts/AuthContext';
 import GetResellerPageData from '@/services/reseller/getPageDataHelper';
-import EmptyState from '@/components/EmptyState';
 import { formatCurrency } from '@/lib/utils';
 import {
 	Tooltip,
