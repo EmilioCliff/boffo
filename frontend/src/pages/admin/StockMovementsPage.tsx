@@ -31,6 +31,7 @@ import {
 	TooltipTrigger,
 } from '@/components/ui/tooltip';
 import GetAdminPageData from '@/services/admin/getPageDataHelper';
+import { formatCurrency } from '@/lib/utils';
 
 export default function StockMovementsPage() {
 	const [searchQuery, setSearchQuery] = useState('');
@@ -314,7 +315,7 @@ export default function StockMovementsPage() {
 							}}
 						>
 							<SelectTrigger className="w-32">
-								<SelectValue placeholder="Status" />
+								<SelectValue placeholder="Source" />
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="all">All Source</SelectItem>
@@ -337,14 +338,14 @@ export default function StockMovementsPage() {
 					<table className="data-table min-w-[900px]">
 						<thead>
 							<tr>
-								<th>Movement ID</th>
-								<th>Type</th>
-								<th>Source</th>
+								<th>Date</th>
 								<th>Product</th>
+								<th>Type</th>
 								<th className="text-right">Quantity</th>
 								<th className="text-right">Unit Price</th>
+								<th className="text-right">Total Value</th>
+								<th>Source</th>
 								<th>Note</th>
-								<th>Date & Time</th>
 								<th>Performed By</th>
 							</tr>
 						</thead>
@@ -352,25 +353,42 @@ export default function StockMovementsPage() {
 							{filteredMovements.length > 0 ? (
 								filteredMovements.map((movement) => (
 									<tr key={movement.id}>
-										<td>
-											<span className="font-medium">
-												{`MOV-${new Date(
-													movement.created_at,
-												).getFullYear()}-${String(
-													movement.id,
-												).padStart(3, '0')}`}
+										<td className="text-sm">
+											{format(
+												new Date(movement.created_at),
+												'MMM dd, yyyy',
+											)}
+											<br />
+											<span className="text-xs text-muted-foreground">
+												{format(
+													new Date(
+														movement.created_at,
+													),
+													'HH:mm',
+												)}
 											</span>
+										</td>
+										<td>
+											<div className="flex flex-col">
+												<span className="font-medium text-sm">
+													{movement.product?.name ||
+														'N/A'}
+												</span>
+												{movement.product_category && (
+													<span className="text-xs text-muted-foreground">
+														{
+															movement.product_category
+														}
+													</span>
+												)}
+											</div>
 										</td>
 										<td>
 											{getTypeBadge(
 												movement.movement_type,
 											)}
 										</td>
-										<td>
-											{getSourceBadge(movement.source)}
-										</td>
-										<td>{movement.product?.name}</td>
-										<td className="text-right">
+										<td className="text-center">
 											<span
 												className={
 													movement.movement_type ===
@@ -395,6 +413,17 @@ export default function StockMovementsPage() {
 												},
 											) ?? 0}
 										</td>
+										<td className="text-right font-medium text-sm">
+											{formatCurrency(
+												movement.quantity *
+													movement.unit_price,
+											)}
+										</td>
+
+										<td>
+											{getSourceBadge(movement.source)}
+										</td>
+
 										<td className="max-w-[100px] truncate">
 											<Tooltip>
 												<TooltipTrigger asChild>
@@ -405,18 +434,7 @@ export default function StockMovementsPage() {
 												</TooltipContent>
 											</Tooltip>
 										</td>
-										<td>
-											{format(
-												movement.created_at,
-												'dd MMM yyyy',
-											)}{' '}
-											<span className="text-muted-foreground">
-												{format(
-													movement.created_at,
-													'HH:mm a',
-												)}
-											</span>
-										</td>
+
 										<td>
 											{movement.user?.name
 												? movement.user.name

@@ -634,6 +634,7 @@ export default function PaymentsPage() {
 								<th>Reference</th>
 								<th>Date</th>
 								<th>Source</th>
+								<th>Actions</th>
 								<th>Status</th>
 							</tr>
 						</thead>
@@ -679,6 +680,22 @@ export default function PaymentsPage() {
 										</td>
 										<td>{payment.recorded_by}</td>
 										<td>
+											<Button
+												size="sm"
+												variant="outline"
+												className="h-7 text-xs "
+												onClick={() =>
+													toast({
+														title: 'Download Receipt',
+														description:
+															'This feature is coming soon!',
+													})
+												}
+											>
+												Download Receipt
+											</Button>
+										</td>
+										<td>
 											{payment.date_paid ? (
 												<Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">
 													Confirmed
@@ -689,13 +706,12 @@ export default function PaymentsPage() {
 												</Badge>
 											)}
 										</td>
-										<td></td>
 									</tr>
 								))
 							) : (
 								<tr>
 									<td
-										colSpan={8}
+										colSpan={9}
 										className="text-center py-8"
 									>
 										<p className="text-muted-foreground">

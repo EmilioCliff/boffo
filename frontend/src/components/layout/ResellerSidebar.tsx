@@ -28,6 +28,11 @@ const resellerNavItems = [
 	{ title: 'Sales', href: '/reseller/sales', icon: ShoppingCart },
 	{ title: 'Goods Requests', href: '/reseller/requests', icon: FileText },
 	{ title: 'My Payments', href: '/reseller/payments', icon: Wallet },
+	{
+		title: 'Account Summary',
+		href: '/reseller/account',
+		icon: FileText,
+	},
 ];
 
 export default function ResellerSidebar() {

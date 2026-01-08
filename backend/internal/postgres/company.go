@@ -286,7 +286,7 @@ func (cr *CompanyRepository) DistributeStockToReseller(ctx context.Context, dist
 			MovementType: "IN",
 			Quantity:     int64(distribution.Quantity),
 			UnitPrice:    pkg.Float64ToPgTypeNumeric(distribution.UnitPrice),
-			Source:       "DISTRIBUTION",
+			Source:       "PURCHASE",
 			Note:         fmt.Sprintf("%s received products worth: %.2f", resellerName, distribution.TotalPrice),
 		})
 		if err != nil {

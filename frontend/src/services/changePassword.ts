@@ -1,20 +1,11 @@
 import api from '@/api/api';
-import type { ListCommonProps, UserResponse } from '@/lib/types';
+import type { ChangePasswordForm, UserResponse } from '@/lib/types';
 import { isAxiosError } from 'axios';
 
-const GetUsers = async (data: ListCommonProps) => {
+const ChangePassword = async (data: ChangePasswordForm) => {
 	try {
-		let baseUrl = `/users?limit=${data.pageSize}&page=${data.pageNumber}`;
-
-		if (data.Search) {
-			baseUrl = baseUrl + `&search=${encodeURIComponent(data.Search)}`;
-		}
-		if (data.Role) {
-			baseUrl = baseUrl + `&role=${encodeURIComponent(data.Role)}`;
-		}
-
 		const response = await api
-			.get<UserResponse>(baseUrl)
+			.put<UserResponse>(`/users/${data.id}/change-password`, data)
 			.then((resp) => resp.data);
 
 		if (response.message) {
@@ -37,4 +28,4 @@ const GetUsers = async (data: ListCommonProps) => {
 	}
 };
 
-export default GetUsers;
+export default ChangePassword;

@@ -26,7 +26,7 @@ export default function ResellerLayout() {
 
 	return (
 		<SidebarProvider>
-			<div className="min-h-screen bg-background flex min-w-0">
+			<div className="min-h-screen bg-background flex min-w-0 w-full">
 				<ResellerSidebar />
 
 				<div className="flex-1 flex flex-col min-w-0">

@@ -1,20 +1,13 @@
 import api from '@/api/api';
-import type { ListCommonProps, UserResponse } from '@/lib/types';
+import type { ProductResponse } from '@/lib/types';
 import { isAxiosError } from 'axios';
 
-const GetUsers = async (data: ListCommonProps) => {
+const UpdateProductThreshold = async (id: number, threshold: number) => {
 	try {
-		let baseUrl = `/users?limit=${data.pageSize}&page=${data.pageNumber}`;
-
-		if (data.Search) {
-			baseUrl = baseUrl + `&search=${encodeURIComponent(data.Search)}`;
-		}
-		if (data.Role) {
-			baseUrl = baseUrl + `&role=${encodeURIComponent(data.Role)}`;
-		}
-
 		const response = await api
-			.get<UserResponse>(baseUrl)
+			.put<ProductResponse>(`/resellers/stock-threshold/${id}`, {
+				threshold,
+			})
 			.then((resp) => resp.data);
 
 		if (response.message) {
@@ -37,4 +30,4 @@ const GetUsers = async (data: ListCommonProps) => {
 	}
 };
 
-export default GetUsers;
+export default UpdateProductThreshold;

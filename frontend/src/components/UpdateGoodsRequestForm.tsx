@@ -11,11 +11,13 @@ import {
 	SelectItem,
 } from '@/components/ui/select';
 import { X, Plus } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { GoodRequestForm, GoodsRequest } from '@/lib/types';
 import { GoodRequestSchema } from '@/lib/schemas';
 import { useState } from 'react';
 import GetFormHelpers from '@/services/getFormHelpers';
+import UpdateGoodRequest from '@/services/reseller/updateGoodRequest';
+import { useToast } from '@/hooks/use-toast';
 
 interface Props {
 	request: GoodsRequest;
@@ -23,6 +25,8 @@ interface Props {
 }
 
 export function UpdateGoodsRequestForm({ request, onSuccess }: Props) {
+	const { toast } = useToast();
+	const queryClient = useQueryClient();
 	const form = useForm<GoodRequestForm>({
 		resolver: zodResolver(GoodRequestSchema),
 		defaultValues: {
@@ -53,8 +57,32 @@ export function UpdateGoodsRequestForm({ request, onSuccess }: Props) {
 	const [quantity, setQuantity] = useState(0);
 	const [priceRequested, setPriceRequested] = useState(0);
 
-	const onSubmit = (values: GoodRequestForm) => {
-		console.log('Updated Good Request:', values);
+	const updateMutation = useMutation({
+		mutationFn: (data: { id: number; form: GoodRequestForm }) =>
+			UpdateGoodRequest(data.id, data.form),
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({
+				queryKey: ['goods_requested'],
+			});
+			form.reset();
+			toast({
+				variant: 'success',
+				title: 'Request Updated',
+				description: `Goods request has been successfully updated.`,
+			});
+			onSuccess();
+		},
+		onError: (error: any) => {
+			toast({
+				variant: 'destructive',
+				title: 'Error',
+				description: error.message,
+			});
+		},
+	});
+
+	const onSubmit = (data: GoodRequestForm) => {
+		updateMutation.mutate({ id: request.id || 0, form: data });
 	};
 
 	return (
@@ -86,7 +114,6 @@ export function UpdateGoodsRequestForm({ request, onSuccess }: Props) {
 						<Label>Quantity</Label>
 						<Input
 							type="number"
-							min={1}
 							value={quantity}
 							onChange={(e) =>
 								setQuantity(Number(e.target.value))
@@ -108,7 +135,7 @@ export function UpdateGoodsRequestForm({ request, onSuccess }: Props) {
 
 				<Button
 					type="button"
-					variant="secondary"
+					// variant="secondary"
 					disabled={!selectedProductId || quantity <= 0}
 					onClick={() => {
 						const product = productsForm?.data?.find(

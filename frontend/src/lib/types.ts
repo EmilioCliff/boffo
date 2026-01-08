@@ -11,6 +11,7 @@ import type {
 	PaymentFormSchema,
 	SaleFormSchema,
 	GoodRequestSchema,
+	ChangePasswordFormSchema,
 } from './schemas';
 
 export const ADMIN_ROLE = 'admin';
@@ -92,6 +93,7 @@ export interface UserShort {
 }
 
 export type UserForm = z.infer<typeof UserFormSchema>;
+export type ChangePasswordForm = z.infer<typeof ChangePasswordFormSchema>;
 
 export interface UserResponse extends Omit<CommonResponse, 'data'> {
 	data: User[];
@@ -365,6 +367,14 @@ export interface ResellerStockFormHelpersResponse
 	data: ResellerStockFormHelpers[];
 }
 
+// Common types for page data
+export interface PaymentsStats {
+	cash_total: number;
+	mpesa_total: number;
+	total_payments: number;
+	total_received: number;
+}
+
 // Reseller page data type
 export interface GoodsRequestStats {
 	approved_requests: number;
@@ -414,11 +424,22 @@ export interface StockOverview {
 	low_stock_threshold: number;
 }
 
+export interface AccountSummary {
+	total_stock_received: number;
+	total_value_received: number;
+	total_sales_value: number;
+	total_paid: number;
+	total_cogs: number;
+	balance: number;
+}
+
 export interface HelpersData {
 	goods_requests?: GoodsRequestStats;
 	sales?: SalesStats;
 	stock?: StockStats;
 	dashboard?: DashboardStats;
+	payments?: PaymentsStats;
+	account_summary?: AccountSummary;
 }
 
 export interface HelpersResponse extends Omit<CommonResponse, 'data'> {
@@ -495,13 +516,6 @@ export interface GoodsRequestsStats {
 	total_cancelled: number;
 	total_pending: number;
 	total_rejected: number;
-}
-
-export interface PaymentsStats {
-	cash_total: number;
-	mpesa_total: number;
-	total_payments: number;
-	total_received: number;
 }
 
 export interface ResellersStats {
@@ -595,9 +609,6 @@ export interface AuthResponse extends Omit<CommonResponse, 'data'> {
 		access_token: string;
 		user: User;
 	};
-}
-export interface GetUsersResponse extends Omit<CommonResponse, 'data'> {
-	data: User[];
 }
 // export interface UserResponse extends Omit<CommonResponse, 'data'> {
 // 	data: User;

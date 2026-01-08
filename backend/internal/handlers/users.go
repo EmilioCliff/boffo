@@ -141,7 +141,7 @@ func (s *Server) changePasswordHandler(ctx *gin.Context) {
 
 	var req struct {
 		OldPassword string `json:"old_password" binding:"required"`
-		Password    string `json:"password" binding:"required"`
+		NewPassword string `json:"new_password" binding:"required"`
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -169,11 +169,11 @@ func (s *Server) changePasswordHandler(ctx *gin.Context) {
 	}
 
 	if err := pkg.ComparePasswordAndHash(oldHashPass, req.OldPassword); err != nil {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(pkg.Errorf(pkg.AUTHENTICATION_ERROR, "old password is incorrect")))
+		ctx.JSON(http.StatusBadRequest, errorResponse(pkg.Errorf(pkg.AUTHENTICATION_ERROR, "old password is incorrect")))
 		return
 	}
 
-	hashPassword, err := pkg.GenerateHashPassword(req.Password, s.config.PASSWORD_COST)
+	hashPassword, err := pkg.GenerateHashPassword(req.NewPassword, s.config.PASSWORD_COST)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(pkg.Errorf(pkg.INTERNAL_ERROR, "failed to hash password: %s", err.Error())))
 		return
@@ -200,17 +200,17 @@ func (s *Server) deleteUserHandler(ctx *gin.Context) {
 	}
 
 	// get user from context
-	// authPayload, ok := ctx.Get(authorizationPayloadKey)
-	// if !ok {
-	// 	ctx.JSON(http.StatusInternalServerError, errorResponse(pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get auth payload")))
-	// 	return
-	// }
-	// payload := authPayload.(*pkg.Payload)
+	authPayload, ok := ctx.Get(authorizationPayloadKey)
+	if !ok {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get auth payload")))
+		return
+	}
+	payload := authPayload.(*pkg.Payload)
 
-	// if payload.Role != "admin" {
-	// 	ctx.JSON(http.StatusForbidden, errorResponse(pkg.Errorf(pkg.FORBIDDEN_ERROR, "only admin users can delete other users")))
-	// 	return
-	// }
+	if payload.Role != repository.ADMIN_ROLE {
+		ctx.JSON(http.StatusForbidden, errorResponse(pkg.Errorf(pkg.FORBIDDEN_ERROR, "only admin users can delete other users")))
+		return
+	}
 
 	err = s.repo.UserRepository.Delete(ctx, id)
 	if err != nil {

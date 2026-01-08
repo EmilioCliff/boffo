@@ -58,6 +58,25 @@ func (rr *ResellerRepository) GetResellerPageData(ctx context.Context, resellerI
 		}
 
 		return goodRequestsStats, nil
+	case "payments":
+		data, err := rr.queries.GetResellerPaymentsPageStats(ctx, int64(resellerID))
+		if err != nil {
+			return nil, pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get reseller payments page stats: %s", err.Error())
+		}
+
+		var paymentsStats any
+		if err := json.Unmarshal(data, &paymentsStats); err != nil {
+			return nil, pkg.Errorf(pkg.INTERNAL_ERROR, "failed to unmarshal reseller payments page stats: %s", err.Error())
+		}
+
+		return paymentsStats, nil
+	case "account_summary":
+		data, err := rr.queries.GetResellerAccount(ctx, int64(resellerID))
+		if err != nil {
+			return nil, pkg.Errorf(pkg.INTERNAL_ERROR, "failed to get reseller payments page stats: %s", err.Error())
+		}
+
+		return data, nil
 	default:
 		return nil, pkg.Errorf(pkg.INVALID_ERROR, "unknown page: %s", page)
 	}

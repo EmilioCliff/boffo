@@ -50,7 +50,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 
 const deleteUser = `-- name: DeleteUser :exec
 UPDATE users
-SET deleted = true
+SET deleted = true,
+     email = email || '.deleted.' || EXTRACT(EPOCH FROM NOW())::bigint
 WHERE id = $1
 `
 

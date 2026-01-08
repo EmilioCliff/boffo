@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
 	Dialog,
 	DialogContent,
@@ -599,7 +598,7 @@ export default function DistributionPage() {
 								<th className="text-right">Unit Price</th>
 								<th className="text-right">Total Value</th>
 								<th>Date</th>
-								<th>Status</th>
+								<th>Actions</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -649,16 +648,27 @@ export default function DistributionPage() {
 											)}
 										</td>
 										<td>
-											<Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">
-												Completed
-											</Badge>
+											<Button
+												size="sm"
+												variant="outline"
+												className="h-7 text-xs text-emerald-600 hover:text-emerald-700"
+												onClick={() =>
+													toast({
+														title: 'Download Invoice',
+														description:
+															'This feature is coming soon!',
+													})
+												}
+											>
+												Download Invoice
+											</Button>
 										</td>
 									</tr>
 								))
 							) : (
 								<tr>
 									<td
-										colSpan={6}
+										colSpan={8}
 										className="text-center py-8"
 									>
 										<p className="text-muted-foreground">
