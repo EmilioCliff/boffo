@@ -98,7 +98,12 @@ export default function ResellersPage() {
 				queryKey: ['resellers'],
 			});
 			refetch();
-			form.reset({});
+			form.reset({
+				name: '',
+				email: '',
+				phone_number: '',
+				role: 'RESELLER',
+			});
 			toast({
 				variant: 'success',
 				title: 'User Added',
@@ -150,7 +155,12 @@ export default function ResellersPage() {
 				<Dialog
 					open={isDialogOpen}
 					onOpenChange={() => {
-						form.reset();
+						form.reset({
+							name: '',
+							email: '',
+							phone_number: '',
+							role: 'RESELLER',
+						});
 						setIsDialogOpen(!isDialogOpen);
 					}}
 				>
@@ -262,8 +272,14 @@ export default function ResellersPage() {
 										</div>
 										{/* </div> */}
 									</div>
-									<Button className="mt-2" type="submit">
-										Create Reseller
+									<Button
+										disabled={createMutation.isPending}
+										className="mt-2"
+										type="submit"
+									>
+										{createMutation.isPending
+											? 'Creating...'
+											: 'Create Reseller'}
 									</Button>
 								</div>
 							</form>

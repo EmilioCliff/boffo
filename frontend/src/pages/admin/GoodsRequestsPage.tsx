@@ -476,6 +476,7 @@ export default function GoodsRequestsPage() {
 										? 'destructive'
 										: 'default'
 								}
+								disabled={updateMutation.isPending}
 								onClick={handleAction}
 							>
 								{actionType === 'approve'

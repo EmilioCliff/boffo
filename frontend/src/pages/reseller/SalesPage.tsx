@@ -324,7 +324,7 @@ export default function SalesPage() {
 																	field.value
 																		? new Date(
 																				field.value,
-																		  )
+																			)
 																		: undefined
 																}
 																onSelect={(
@@ -361,7 +361,9 @@ export default function SalesPage() {
 										className="mt-2"
 										disabled={createMutation.isPending}
 									>
-										Record Sale
+										{createMutation.isPending
+											? 'Recording...'
+											: 'Record Sale'}
 									</Button>
 								</div>
 							</form>
