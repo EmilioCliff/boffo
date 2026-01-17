@@ -401,7 +401,7 @@ export default function BatchesPage() {
 																	field.value
 																		? new Date(
 																				field.value,
-																		  )
+																			)
 																		: undefined
 																}
 																onSelect={(
@@ -432,8 +432,14 @@ export default function BatchesPage() {
 											)}
 										/>
 									</div>
-									<Button type="submit" className="mt-2">
-										Add Batch
+									<Button
+										disabled={createMutation.isPending}
+										type="submit"
+										className="mt-2"
+									>
+										{createMutation.isPending
+											? 'Adding...'
+											: 'Add Batch'}
 									</Button>
 								</div>
 							</form>

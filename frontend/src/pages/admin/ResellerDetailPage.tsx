@@ -219,6 +219,16 @@ export default function ResellerDetailPage() {
 	const originalRole = useRef(form.getValues('role'));
 	const currentRole = form.watch('role');
 
+	useEffect(() => {
+		form.reset({
+			id: Number(id) ?? 0,
+			name: data?.data.user.name ?? '',
+			email: data?.data.user.email ?? '',
+			phone_number: data?.data.user.phone_number ?? '',
+			role: data?.data.user.role ?? '',
+		});
+	}, [data]);
+
 	const updateMutation = useMutation({
 		mutationFn: UpdateUser,
 		onSuccess: async (data) => {
@@ -289,8 +299,8 @@ export default function ResellerDetailPage() {
 			quantity >= lowStockThreshold
 				? 'in_stock'
 				: quantity > 0
-				? 'low_stock'
-				: 'out_of_stock'
+					? 'low_stock'
+					: 'out_of_stock'
 		) {
 			case 'in_stock':
 				return <span className="badge-success">In Stock</span>;
@@ -342,7 +352,13 @@ export default function ResellerDetailPage() {
 	};
 
 	const handleCancel = () => {
-		form.reset();
+		form.reset({
+			id: Number(id) ?? 0,
+			name: data?.data.user.name ?? '',
+			email: data?.data.user.email ?? '',
+			phone_number: data?.data.user.phone_number ?? '',
+			role: data?.data.user.role ?? '',
+		});
 		setEditMode(false);
 	};
 
@@ -705,9 +721,14 @@ export default function ResellerDetailPage() {
 									<Button
 										type="submit"
 										size="sm"
-										disabled={!editMode}
+										disabled={
+											!editMode ||
+											updateMutation.isPending
+										}
 									>
-										Save changes
+										{updateMutation.isPending
+											? 'Saving...'
+											: 'Save changes'}
 									</Button>
 								</div>
 							</div>

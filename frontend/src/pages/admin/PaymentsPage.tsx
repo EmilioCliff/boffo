@@ -423,7 +423,7 @@ export default function PaymentsPage() {
 																	field.value
 																		? new Date(
 																				field.value,
-																		  )
+																			)
 																		: undefined
 																}
 																onSelect={(
@@ -454,8 +454,14 @@ export default function PaymentsPage() {
 											)}
 										/>
 									</div>
-									<Button className="mt-2" type="submit">
-										Record Payment
+									<Button
+										disabled={createMutation.isPending}
+										className="mt-2"
+										type="submit"
+									>
+										{createMutation.isPending
+											? 'Recording...'
+											: 'Record Payment'}
 									</Button>
 								</div>
 							</form>

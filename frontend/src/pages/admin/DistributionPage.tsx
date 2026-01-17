@@ -405,7 +405,7 @@ export default function DistributionPage() {
 																		field.value
 																			? new Date(
 																					field.value,
-																			  )
+																				)
 																			: undefined
 																	}
 																	onSelect={(
@@ -442,7 +442,9 @@ export default function DistributionPage() {
 										className="mt-2"
 										type="submit"
 									>
-										Create Distribution
+										{createMutation.isPending
+											? 'Creating...'
+											: 'Create Distribution'}
 									</Button>
 								</div>
 							</form>

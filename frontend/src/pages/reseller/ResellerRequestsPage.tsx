@@ -374,9 +374,14 @@ export default function ResellerRequestsPage() {
 
 									<Button
 										type="submit"
-										disabled={fields.length === 0}
+										disabled={
+											fields.length === 0 ||
+											createMutation.isPending
+										}
 									>
-										Submit Request
+										{createMutation.isPending
+											? 'Submitting...'
+											: 'Submit Request'}
 									</Button>
 								</div>
 							</form>
